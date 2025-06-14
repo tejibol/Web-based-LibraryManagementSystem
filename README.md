@@ -1,1 +1,1 @@
-Hi, I am a student from a private college school. This is my very first website that Ive created myself. This is also the very first project that I insterted here in Github. Still Learning, still fighting. Let's GOO!!
+
