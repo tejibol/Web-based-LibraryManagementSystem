@@ -1,0 +1,694 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> _userManager
+@inject SignInManager<ApplicationUser> SignInManager
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - LibraryManagementSystem</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/LibraryManagementSystem.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* New elegant navbar styles */
+        .navbar {
+            background-color: #2c3e50;
+            padding: 0.5rem 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 600;
+            font-size: 1.3rem;
+            color: white !important;
+            display: flex;
+            align-items: center;
+        }
+
+            /* Logo image styles - adjust these as needed */
+            .navbar-brand .logo-img {
+                height: 32px;
+                width: auto; /* Maintain aspect ratio */
+                margin-right: 15px; /* Space between logo and text */
+                margin-left: -10px; /* Left margin adjustment */
+            }
+
+            .navbar-brand img {
+                height: 32px;
+                margin-right: 10px;
+            }
+
+        .nav-link {
+            color: rgba(255,255,255,0.85) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            transition: all 0.2s ease;
+        }
+
+            .nav-link:hover {
+                color: white !important;
+            }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.85) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+            .logout-btn:hover {
+                color: white !important;
+                text-decoration: underline;
+            }
+    </style>
+
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+    @{
+        var currentPage = Context.Request.Path.Value?.ToLower();
+    }
+    @if (!(currentPage ?? "").Contains("/login"))
+    {
+        <header>
+            <nav class="navbar navbar-expand-sm navbar-dark fixed-top">
+                <div class="container-fluid">
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                        <img src="~/images/LibraTech.png" alt="Logo" class="logo-img" style=" " font-weight-normal"">
+                        LibraTechSolution
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                        <ul class="navbar-nav flex-grow-1">
+                            @if (!(currentPage == "/" || currentPage == "/home" || currentPage == "/home/index"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                                </li>
+                            }
+                        </ul>
+
+                        <ul class="navbar-nav">
+                            @if (!SignInManager.IsSignedIn(User) && !(currentPage == "/home/bookcollection"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" href="@Url.Action("BookCollection", "Home")"><i class="fas fa-book-open me-1"></i> Explore Collection</a>
+                                </li>
+                            }
+                            <li class="nav-item">
+                                <a class="nav-link" href="#"><i class="fas fa-headset me-1"></i> Support</a>
+                            </li>
+                            @if (SignInManager.IsSignedIn(User))
+                            {
+                                @await Component.InvokeAsync("NotificationBell")
+                            }
+                            else if (currentPage == "/" || currentPage == "/home" || currentPage == "/home/index" || currentPage == "/home/bookcollection" || currentPage.StartsWith("/home/viewbook"))
+                            {
+                                <li class="nav-item d-flex align-items-center mx-2">
+                                    <span style="height: 24px; border-left: 1.5px solid #bbb; margin-right: 8px;"></span>
+                                    <a class="nav-link" href="/Identity/Account/Login">
+                                        <i class="fas fa-sign-in-alt me-1"></i> Login
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            <form id="logoutForm" method="post" action="@Url.Action("Logout",
+                            User.IsInRole("SystemAdmin") ? "SystemAdmin" :
+                            User.IsInRole("Librarian") ? "Librarian" :
+                            User.IsInRole("Student") ? "Student" :
+                            User.IsInRole("SchoolAdmin") ? "SchoolAdmin" : "")">
+                                <button type="button" class="logout-btn" onclick="confirmLogout()">
+                                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </nav>
+        </header>
+    }
+    <!-- Sidebar sections remain exactly the same as your original code -->
+    @if (User.IsInRole("SystemAdmin"))
+    {
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <style>
+            .sidebar {
+                margin-top: 56px;
+                width: 220px;
+                background: #1c1f26;
+                color: white;
+                padding: 20px 10px;
+                box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                z-index: 1000;
+                overflow-y: auto; /* Add scroll if content overflows */
+            }
+
+            .profile-box {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 30px;
+                padding: 10px;
+                background-color: #2a2e38;
+                border-radius: 8px;
+            }
+
+                .profile-box img {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                }
+
+            .profile-name {
+                font-size: 1rem;
+                font-weight: bold;
+                color: #fff;
+            }
+
+            .nav-button {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                width: 100%;
+                padding: 12px;
+                border: none;
+                margin-bottom: 10px;
+                background: transparent;
+                color: white;
+                text-decoration: none;
+                border-radius: 8px;
+                transition: background-color 0.3s ease, transform 0.2s ease;
+            }
+
+                .nav-button i {
+                    font-size: 18px;
+                    width: 30px;
+                    text-align: center;
+                }
+
+                .nav-button:visited,
+                .nav-button:link,
+                .nav-button:hover,
+                .nav-button:active {
+                    color: white;
+                    text-decoration: none;
+                }
+
+                .nav-button:hover {
+                    background-color: rgba(255, 255, 255, 0.08);
+                    transform: translateX(4px);
+                }
+
+                .nav-button.active {
+                    background-color: rgba(255, 255, 255, 0.15);
+                    color: white;
+                    border-left: 4px solid #00bcd4;
+                    transform: translateX(4px);
+                    margin-left: -4px;
+                }
+        </style>
+
+        <div class="sidebar">
+            @{
+                var user = await _userManager.GetUserAsync(User);
+            }
+
+            <!-- Profile Box -->
+            <div class="profile-box">
+                    <img src="~/images/DefProfPic.jpg" alt="Profile Picture" />
+                <div class="profile-name">@user?.FirstName @user?.LastName</div>
+            </div>
+
+            <!-- Navigation Links -->
+            <a href="/SystemAdmin/Dashboard" class="nav-button @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="/SystemAdmin/ManageUsers" class="nav-button @(ViewContext.RouteData.Values["action"]?.ToString() == "ManageUsers" ? "active" : "")">
+                <i class="fas fa-users-cog"></i>
+                <span>Manage Users</span>
+            </a>
+            
+            <a href="/SystemAdmin/ManageStudents" class="nav-button @(ViewContext.RouteData.Values["action"]?.ToString() == "ManageStudents" ? "active" : "")">
+                <i class="fas fa-user-graduate"></i>
+                <span>Manage Students</span>
+            </a>
+
+            <a href="/SystemAdmin/ManageBooks" class="nav-button @(ViewContext.RouteData.Values["action"]?.ToString() == "ManageBooks" ? "active" : "")">
+                <i class="fas fa-book"></i>
+                <span>Manage Books</span>
+            </a>
+
+            <a href="/SystemAdmin/ActivityLog" class="nav-button @(ViewContext.RouteData.Values["action"]?.ToString() == "ActivityLog" ? "active" : "")">
+                <i class="fas fa-history"></i>
+                <span>Activity Log</span>
+            </a>
+        </div>
+    }
+
+    @if (User.IsInRole("SchoolAdmin"))
+    {
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <style>
+            .sidebar {
+                margin-top: 56px;
+                width: 220px;
+                background: #1c1f26;
+                color: white;
+                padding: 20px 10px;
+                box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                z-index: 1000;
+                overflow-y: auto; /* Add scroll if content overflows */
+            }
+
+            .profile-box {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 30px;
+                padding: 10px;
+                background-color: #2a2e38;
+                border-radius: 8px;
+            }
+
+                .profile-box img {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                }
+
+            .profile-name {
+                font-size: 1rem;
+                font-weight: bold;
+                color: #fff;
+            }
+
+            .nav-button {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                width: 100%;
+                padding: 12px;
+                border: none;
+                margin-bottom: 10px;
+                background: transparent;
+                color: white;
+                text-decoration: none;
+                border-radius: 8px;
+                transition: background-color 0.3s ease, transform 0.2s ease;
+            }
+
+                .nav-button i {
+                    font-size: 18px;
+                    width: 30px;
+                    text-align: center;
+                }
+
+                .nav-button:visited,
+                .nav-button:link,
+                .nav-button:hover,
+                .nav-button:active {
+                    color: white;
+                    text-decoration: none;
+                }
+
+                .nav-button:hover {
+                    background-color: rgba(255, 255, 255, 0.08);
+                    transform: translateX(4px);
+                }
+
+                .nav-button.active {
+                    background-color: rgba(255, 255, 255, 0.15);
+                    color: white;
+                    border-left: 4px solid #00bcd4;
+                    transform: translateX(4px);
+                    margin-left: -4px;
+                }
+        </style>
+
+        <div class="sidebar">
+            @{
+                var user = await _userManager.GetUserAsync(User);
+            }
+
+            <!-- Profile Box -->
+            <div class="profile-box">
+                <a href="/Home/ViewProfile" class="text-decoration-none text-white d-flex align-items-center gap-2">
+                    <img src="@(user?.ProfilePictureUrl ?? "~/images/DefProfPic.jpg")" alt="Profile Picture" />
+                    <div class="profile-name">@user?.FirstName @user?.LastName</div>
+                </a>
+            </div>
+
+            <!-- Navigation Links -->
+            <a href="/SchoolAdmin/Dashboard" class="nav-button @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="/SchoolAdmin/ManageUsers" class="nav-button @(ViewContext.RouteData.Values["action"]?.ToString() == "ManageUsers" ? "active" : "")">
+                <i class="fas fa-users-cog"></i>
+                <span>Manage Users</span>
+            </a>
+
+            <a href="/SchoolAdmin/ActivityLog" class="nav-button @(ViewContext.RouteData.Values["action"]?.ToString() == "ActivityLog" ? "active" : "")">
+                <i class="fas fa-history"></i>
+                <span>Activity Log</span>
+            </a>
+
+            <a href="/SchoolAdmin/ManageStudents" class="nav-button @(ViewContext.RouteData.Values["action"]?.ToString() == "ManageStudents" ? "active" : "")">
+                <i class="fas fa-user-graduate"></i>
+                <span>Manage Students</span>
+            </a>
+        </div>
+    }
+
+    @if (User.IsInRole("Student"))
+    {
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <style>
+            .sidebar {
+                margin-top: 56px;
+                width: 220px;
+                background: #1c1f26;
+                color: white;
+                padding: 20px 10px;
+                box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                z-index: 1000;
+                overflow-y: auto; /* Add scroll if content overflows */
+            }
+
+            .profile-box {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 30px;
+                padding: 10px;
+                background-color: #2a2e38;
+                border-radius: 8px;
+            }
+
+                .profile-box img {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                }
+
+            .profile-name {
+                font-size: 1rem;
+                font-weight: bold;
+                color: #fff;
+            }
+
+            .nav-button {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                width: 100%;
+                padding: 12px;
+                border: none;
+                margin-bottom: 10px;
+                background: transparent;
+                color: white;
+                text-decoration: none;
+                border-radius: 8px;
+                transition: background-color 0.3s ease, transform 0.2s ease;
+            }
+
+                .nav-button i {
+                    font-size: 18px;
+                    width: 30px;
+                    text-align: center;
+                }
+
+                .nav-button:visited,
+                .nav-button:link,
+                .nav-button:hover,
+                .nav-button:active {
+                    color: white;
+                    text-decoration: none;
+                }
+
+                .nav-button:hover {
+                    background-color: rgba(255, 255, 255, 0.08);
+                    transform: translateX(4px);
+                }
+
+                .nav-button.active {
+                    background-color: rgba(255, 255, 255, 0.15);
+                    color: white;
+                    border-left: 4px solid #00bcd4;
+                    transform: translateX(4px);
+                    margin-left: -4px;
+                }
+        </style>
+
+        <div class="sidebar">
+            @{
+                var user = await _userManager.GetUserAsync(User);
+            }
+
+            <!-- Profile Box -->
+            <div class="profile-box">
+                <a href="/Home/ViewProfile" class="text-decoration-none text-white d-flex align-items-center gap-2">
+                    <img src="@(user?.ProfilePictureUrl ?? "~/images/DefProfPic.jpg")" alt="Profile Picture" />
+                    <div class="profile-name">@user?.FirstName @user?.LastName</div>
+                </a>
+            </div>
+
+            <!-- Navigation Links -->
+            <a href="/Student/Dashboard" class="nav-button @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="/Student/Collections" class="nav-button @(ViewContext.RouteData.Values["action"]?.ToString() == "Collections" ? "active" : "")">
+                <i class="fa-sharp fa-solid fa-book"></i>
+                <span>Collections</span>
+            </a>
+        </div>
+    }
+
+    @if (User.IsInRole("Librarian"))
+    {
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <style>
+            .sidebar {
+                margin-top: 56px;
+                width: 220px;
+                background: #1c1f26;
+                color: white;
+                padding: 20px 10px;
+                box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                z-index: 1000;
+                overflow-y: auto; /* Add scroll if content overflows */
+            }
+
+            .profile-box {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 30px;
+                padding: 10px;
+                background-color: #2a2e38;
+                border-radius: 8px;
+            }
+
+                .profile-box img {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                }
+
+            .profile-name {
+                font-size: 1rem;
+                font-weight: bold;
+                color: #fff;
+            }
+
+            .nav-button {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                width: 100%;
+                padding: 12px;
+                border: none;
+                margin-bottom: 10px;
+                background: transparent;
+                color: white;
+                text-decoration: none;
+                border-radius: 8px;
+                transition: background-color 0.3s ease, transform 0.2s ease;
+            }
+
+                .nav-button i {
+                    font-size: 18px;
+                    width: 30px;
+                    text-align: center;
+                }
+
+                .nav-button:visited,
+                .nav-button:link,
+                .nav-button:hover,
+                .nav-button:active {
+                    color: white;
+                    text-decoration: none;
+                }
+
+                .nav-button:hover {
+                    background-color: rgba(255, 255, 255, 0.08);
+                    transform: translateX(4px);
+                }
+
+                .nav-button.active {
+                    background-color: rgba(255, 255, 255, 0.15);
+                    color: white;
+                    border-left: 4px solid #00bcd4;
+                    transform: translateX(4px);
+                    margin-left: -4px;
+                }
+        </style>
+
+        <div class="sidebar">
+            @{
+                var user = await _userManager.GetUserAsync(User);
+            }
+
+            <!-- Profile Box -->
+            <div class="profile-box">
+                <a href="/Home/ViewProfile" class="text-decoration-none text-white d-flex align-items-center gap-2">
+                    <img src="@(user?.ProfilePictureUrl ?? "~/images/DefProfPic.jpg")" alt="Profile Picture" />
+                    <div class="profile-name">@user?.FirstName @user?.LastName</div>
+                </a>
+            </div>
+
+            <!-- Navigation Links -->
+            <a href="/Librarian/Dashboard" class="nav-button @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="/Librarian/ManageBooks" class="nav-button @(ViewContext.RouteData.Values["action"]?.ToString() == "ManageBooks" ? "active" : "")">
+                <i class="fas fa-book"></i>
+                <span>Manage Books</span>
+            </a>
+
+            <a href="/Librarian/PendingRequest" class="nav-button @(ViewContext.RouteData.Values["action"]?.ToString() == "PendingRequest" ? "active" : "")">
+                <i class="fas fa-clipboard-list"></i>
+                <span>Pending Requests</span>
+            </a>
+
+            <a href="/Librarian/BorrowerProfile" class="nav-button @(ViewContext.RouteData.Values["action"]?.ToString() == "BorrowerProfile" ? "active" : "")">
+                <i class="fas fa-users"></i>
+                <span>Borrower Profile</span>
+            </a>
+
+            <a href="/Librarian/ManageUsers" class="nav-button @(ViewContext.RouteData.Values["action"]?.ToString() == "ManageUsers" ? "active" : "")">
+                <i class="fas fa-user-plus"></i>
+                <span>Manage Users</span>
+            </a>
+        </div>
+    }
+
+    <main role="main" class="@(User.IsInRole("SystemAdmin") || User.IsInRole("SchoolAdmin") || User.IsInRole("Librarian") ? "main-content" : "") pb-3">
+        @RenderBody()
+    </main>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2025 - LibraryManagementSystem
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.5/signalr.min.js"></script>
+    <script>
+                 const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/notificationHub")
+            .build();
+
+        connection.on("ReceiveNotification", function (message) {
+            // Show toast notification instead of alert
+            showToastNotification(message);
+
+            // Refresh the notification bell
+            refreshNotificationBell();
+        });
+
+        function showToastNotification(message) {
+            // Implement your toast notification UI here
+            console.log("New notification:", message);
+            // Example: using Bootstrap toast
+            const toast = `<div class="toast show position-fixed bottom-0 end-0 m-3" role="alert">
+                <div class="toast-header">
+                    <strong class="me-auto">Notification</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body">${message}</div>
+            </div>`;
+            document.body.insertAdjacentHTML('beforeend', toast);
+        }
+
+        function refreshNotificationBell() {
+            // This will force the notification bell to reload its content
+            $.get("/Notification/GetNotificationCount", function(count) {
+                const badge = $('.fa-bell').siblings('.badge');
+                if (count > 0) {
+                    badge.text(count).show();
+                } else {
+                    badge.hide();
+                }
+            });
+
+            // Alternatively, reload the entire notification component
+            $("[data-notification-bell]").load(" /?handler=NotificationBell");
+        }
+
+        connection.start().catch(function (err) {
+            console.error(err.toString());
+        });
+
+        function confirmLogout() {
+            if (confirm("Are you sure you want to log out?")) {
+                document.getElementById("logoutForm").submit();
+            }
+        }
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

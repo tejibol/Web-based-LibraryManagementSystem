@@ -1,0 +1,232 @@
+﻿@model List<UserViewModel>
+@{
+    ViewData["Title"] = "Student Dashboard";
+}
+
+@section Styles {
+    <style>
+        body {
+            padding-top: 50px;
+        }
+
+        .dashboard-container {
+            margin-left: 220px;
+            padding: 2rem;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .management-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            animation: slideDown 0.5s ease;
+        }
+
+        .content-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .book-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .status-badge {
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead {
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            color: white;
+        }
+
+        .table th {
+            border: none;
+            padding: 1rem;
+            font-weight: 500;
+        }
+
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        @@keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+}
+
+<div class="dashboard-container">
+    <!-- Welcome Section -->
+    <div class="management-header">
+        <h1 class="display-6 mb-3">Welcome Back, @ViewBag.CurrentUser.FirstName @ViewBag.CurrentUser.LastName!</h1>
+        <p class="text-muted">Your Library Dashboard</p>
+    </div>
+
+    <!-- New Arrivals Section -->
+    <div class="content-section">
+        <h4 class="mb-4">New Arrivals</h4>
+        <div class="row g-4">
+            @foreach (var book in ViewBag.NewBooks)
+            {
+                <div class="col-md-4">
+                    <a asp-controller="Student" asp-action="ViewBook" asp-route-id="@book.BookID" class="text-decoration-none">
+                        <div class="card book-card h-100">
+                            @if (!string.IsNullOrEmpty(book.CoverImageUrl))
+                            {
+                                <img src="@book.CoverImageUrl" class="card-img-top" alt="Book cover" style="height: 200px; object-fit: cover;">
+                            }
+                            <div class="card-body">
+                                <h5 class="card-title text-dark">@book.Title</h5>
+                                <p class="card-text text-muted">@book.Author</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge @(book.IsAvailable ? "bg-success" : "bg-danger") status-badge">
+                                        @(book.IsAvailable ? "Available" : "Not Available")
+                                    </span>
+                                    <small class="text-muted">ISBN: @book.ISBN</small>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Current Borrowings Section -->
+    <div class="content-section">
+        <h4 class="mb-4">Current Borrowings</h4>
+        @if (ViewBag.CurrentBorrowings.Count > 0)
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Book Title</th>
+                            <th>Copy Number</th>
+                            <th>Borrow Date</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var borrowing in ViewBag.CurrentBorrowings)
+                        {
+                            <tr>
+                                <td>@borrowing.Book.Title</td>
+                                <td>@borrowing.CopyNumber</td>
+                                <td>@borrowing.BorrowDate.ToString("MMM dd, yyyy")</td>
+                                <td>@borrowing.DueDate.ToString("MMM dd, yyyy")</td>
+                                <td>
+                                    @{
+                                        var daysRemaining = (borrowing.DueDate - DateTime.Now).Days;
+                                        var statusClass = daysRemaining < 0 ? "danger" : "warning";
+                                    }
+                                    <span class="status-badge bg-@statusClass">
+                                        @if (daysRemaining < 0)
+                                        {
+                                            @:Overdue (@Math.Abs(daysRemaining)d)
+                                        }
+                                        else
+                                        {
+                                            @:Due in @daysRemaining days
+                                        }
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                No current borrowings found.
+            </div>
+        }
+    </div>
+
+    <!-- Borrowing History Section -->
+    <div class="content-section">
+        <h4 class="mb-4">Borrowing History</h4>
+        @if (ViewBag.BorrowingHistory.Count > 0)
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Book Title</th>
+                            <th>Copy Number</th>
+                            <th>Borrow Date</th>
+                            <th>Return Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var history in ViewBag.BorrowingHistory)
+                        {
+                            <tr>
+                                <td>@history.Book.Title</td>
+                                <td>@history.CopyNumber</td>
+                                <td>@history.BorrowDate.ToString("MMM dd, yyyy")</td>
+                                <td>@history.ReturnDate?.ToString("MMM dd, yyyy")</td>
+                                <td><span class="badge bg-success">Returned</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                No borrowing history found.
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+}

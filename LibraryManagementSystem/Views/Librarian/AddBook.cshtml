@@ -1,0 +1,140 @@
+﻿@model LibraryManagementSystem.Models.Book
+
+@section Styles {
+    <style>
+        .form-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .preview-image {
+            max-width: 200px;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+    </style>
+}
+
+<div class="user-management-container">
+    <div class="management-header">
+        <h3>Add New Book</h3>
+        <a asp-action="ManageBooks" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Books
+        </a>
+    </div>
+
+    <div class="form-card">
+        <form asp-action="AddBook" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label asp-for="Title"></label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Author"></label>
+                <input asp-for="Author" class="form-control" />
+                <span asp-validation-for="Author" class="text-danger"></span>
+            </div>
+
+            <!-- NEW: ISBN Field -->
+            <div class="form-group">
+                <label asp-for="ISBN"></label>
+                <input asp-for="ISBN" class="form-control" />
+                <span asp-validation-for="ISBN" class="text-danger"></span>
+            </div>
+
+            <!-- NEW: Description Field -->
+            <div class="form-group">
+                <label asp-for="Description"></label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            @* SUBJECTS DROPDOWN START *@
+            @if (ViewBag.AllSubjects != null && ((List<LibraryManagementSystem.Models.Subject>)ViewBag.AllSubjects).Count > 0)
+            {
+                <div class="form-group">
+                    <label>Subjects</label>
+                    <select name="selectedSubjectIds" class="form-control" multiple>
+                        @foreach (var subject in ViewBag.AllSubjects)
+                        {
+                            <option value="@subject.SubjectId">@subject.SubjectName</option>
+                        }
+                    </select>
+                    <small class="text-muted">Hold CTRL or SHIFT to select multiple subjects</small>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    No subjects available. Please add subjects first.
+                </div>
+            }
+            @* SUBJECTS DROPDOWN END *@
+
+            <div class="form-group">
+                <label asp-for="PublishedDate"></label>
+                <input asp-for="PublishedDate" type="date" class="form-control" />
+                <span asp-validation-for="PublishedDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Cover Image</label>
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="coverImage" name="coverImage">
+                    <label class="custom-file-label" for="coverImage">Choose file</label>
+                </div>
+                <img id="imagePreview" class="preview-image" style="display:none;" />
+            </div>
+
+            <div class="form-group form-check">
+                <input asp-for="IsAvailable" class="form-check-input" />
+                <label asp-for="IsAvailable" class="form-check-label"></label>
+            </div>
+
+            <div class="form-group">
+                <label for="totalCopies">Total Copies</label>
+                <input type="number" name="totalCopies" id="totalCopies" class="form-control" min="1" value="1" required />
+                <small class="text-muted">Enter the number of copies to add to the library</small>
+            </div>
+
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-save"></i> Add Book
+            </button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Image preview and file label update
+        document.getElementById('coverImage').addEventListener('change', function(e) {
+            // Update file input label
+            const fileName = e.target.files[0]?.name || 'Choose file';
+            document.querySelector('.custom-file-label').textContent = fileName;
+
+            // Image preview
+            if (e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block'; // Make sure it's visible
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        // Initialize - hide preview if no image exists
+        document.addEventListener('DOMContentLoaded', function() {
+            const preview = document.getElementById('imagePreview');
+            if (!preview.src || preview.src === '') {
+                preview.style.display = 'none';
+            }
+        });
+    </script>
+}

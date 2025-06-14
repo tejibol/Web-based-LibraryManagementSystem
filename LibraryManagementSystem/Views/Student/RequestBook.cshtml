@@ -1,0 +1,153 @@
+﻿@model Book
+@{
+    ViewData["Title"] = "Request Book";
+}
+
+@section Styles {
+    <style>
+        body {
+            padding-top: 50px;
+            margin-left: 220px; /* Adjust as needed */
+        }
+
+        .card-header.bg-primary {
+            background-color: #007bff !important; /* Bootstrap primary color */
+        }
+
+        .btn-success {
+            background-color: #28a745 !important; /* Bootstrap success color */
+            border-color: #28a745 !important;
+        }
+
+            .btn-success:hover {
+                background-color: #218838 !important;
+                border-color: #1e7e34 !important;
+            }
+
+        .btn-secondary {
+            background-color: #6c757d !important; /* Bootstrap secondary color */
+            border-color: #6c757d !important;
+        }
+
+            .btn-secondary:hover {
+                background-color: #5a6268 !important;
+                border-color: #545b62 !important;
+            }
+
+        .alert-info {
+            background-color: #d1ecf1 !important; /* Bootstrap info background */
+            border-color: #bee5eb !important;
+            color: #0c5460 !important;
+        }
+
+        .toast-header {
+            background-color: rgba(0, 0, 0, 0.03);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .toast.bg-success {
+            background-color: #d4edda !important;
+            color: #155724 !important;
+        }
+
+        .toast.bg-danger {
+            background-color: #f8d7da !important;
+            color: #721c24 !important;
+        }
+    </style>
+}
+
+<div class="container mt-5">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4>Confirm Book Request</h4>
+        </div>
+        <div class="card-body">
+            <h5>Are you sure you want to request to borrow:</h5>
+            <div class="alert alert-info">
+                <h4>"@Model.Title" by @Model.Author</h4>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Borrowing Policy:</h6>
+                        <ul>
+                            <li>Maximum 2 books at a time</li>
+                            <li>7-days borrowing period</li>
+                            <li>Pending approval required</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Expected Timeline:</h6>
+                        <ul>
+                            <li>Approval: 1-2 working days</li>
+                            <li>Collection: Within 3 days of approval</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button id="confirmRequest" class="btn btn-success btn-lg">
+                    <i class="fas fa-check-circle"></i> Confirm Request
+                </button>
+                <a href="@Url.Action("ViewBook", "Student", new { id = Model.BookID })"
+                   class="btn btn-secondary btn-lg">
+                    <i class="fas fa-times-circle"></i> Cancel
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="requestToast" class="toast position-fixed bottom-0 end-0 m-3" style="min-width: 350px">
+    <div class="toast-header">
+        <strong class="me-auto">System Notification</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body"></div>
+</div>
+
+@section Scripts {
+    @Html.AntiForgeryToken()
+    <script>
+        $(document).ready(function() {
+            $('#confirmRequest').click(async function() {
+                try {
+                    const response = await fetch('@Url.Action("SubmitRequest", "Student", new { bookId = Model.BookID })', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showToast('✅ Request Submitted! You will be notified once processed.', 'success');
+                        $('#confirmRequest').prop('disabled', true).html('<i class="fas fa-check"></i> Request Pending');
+                        setTimeout(() => window.location.href = result.redirectUrl, 2000);
+                    } else {
+                        showToast(`❌ Error: ${result.message}`, 'danger');
+                    }
+                } catch (error) {
+                    showToast('❌ Error submitting request: ' + error.message, 'danger');
+                    console.error('Error:', error);
+                }
+            });
+
+            function showToast(message, type) {
+                const toast = $('#requestToast');
+                toast.find('.toast-body').text(message);
+                toast.removeClass('bg-success bg-danger')
+                     .addClass(`bg-${type}`)
+                     .toast('show');
+            }
+        });
+    </script>
+}

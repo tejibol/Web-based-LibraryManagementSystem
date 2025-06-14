@@ -1,0 +1,119 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> _userManager
+@section Styles {
+    <style>
+        body {
+            padding-top: 50px;
+        }
+
+        .dashboard-container {
+            margin-left: 220px;
+            padding: 2rem;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .management-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            animation: slideDown 0.5s ease;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .stat-title {
+            color: #7f8c8d;
+            margin-top: 10px;
+            font-size: 1.1rem;
+        }
+
+        @@keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+}
+
+<div class="dashboard-container">
+    <div class="management-header">
+        <h1 class="display-6 mb-3">Welcome Back, Librarian!</h1>
+        <p class="text-muted">Here's your system overview</p>
+    </div>
+
+    <div class="stats-container">
+        <!-- Pending Requests Card -->
+        <div class="stat-card">
+            <div class="stat-value">@ViewBag.PendingRequests</div>
+            <div class="stat-title">Pending Requests</div>
+            <i class="fas fa-clock fa-2x text-warning mt-3"></i>
+        </div>
+
+        <!-- Overdue Books Card -->
+        <div class="stat-card">
+            <div class="stat-value">@ViewBag.OverdueBooks</div>
+            <div class="stat-title">Overdue Books</div>
+            <i class="fas fa-exclamation-triangle fa-2x text-danger mt-3"></i>
+        </div>
+
+        <!-- Active Borrowings Card -->
+        <div class="stat-card">
+            <div class="stat-value">@ViewBag.ActiveBorrowings</div>
+            <div class="stat-title">Active Borrowings</div>
+            <i class="fas fa-book-reader fa-2x text-success mt-3"></i>
+        </div>
+
+        <!-- Total Book Copies Card -->
+        <div class="stat-card">
+            <div class="stat-value">@ViewBag.TotalBookCopies</div>
+            <div class="stat-title">Total Books in Library</div>
+            <i class="fas fa-book fa-2x text-primary mt-3"></i>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+}

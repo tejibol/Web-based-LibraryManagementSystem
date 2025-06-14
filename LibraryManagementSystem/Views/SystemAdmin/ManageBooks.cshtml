@@ -1,0 +1,226 @@
+﻿@model IEnumerable<LibraryManagementSystem.Models.Book>
+
+@{
+    ViewData["Title"] = "Manage Books";
+}
+
+@section Styles {
+    <style>
+        body {
+            padding-top: 50px;
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+            min-height: 100vh;
+        }
+
+        .user-management-container {
+            margin-left: 220px;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .management-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .search-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .books-list .card-header {
+            border-radius: 0.5rem 0.5rem 0 0 !important;
+        }
+
+        .book-card {
+            border-radius: 0.5rem;
+            transition: transform 0.2s;
+            height: 100%;
+        }
+
+        .book-card-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            height: 100%;
+        }
+
+            .book-card-link:hover {
+                background-color: rgba(0,0,0,0.03);
+            }
+
+        .action-buttons {
+            position: relative;
+            z-index: 2; /* Keep buttons above the clickable area */
+        }
+
+            .book-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            }
+
+        .card-title {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .subject-card {
+            margin-bottom: 2rem;
+        }
+
+        .book-cover {
+            width: 80px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .add-user-btn {
+            background: #2ecc71;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+
+            .add-user-btn:hover {
+                transform: translateY(-2px);
+            }
+    </style>
+}
+
+<div class="user-management-container">
+    <div class="management-header">
+        <h1 class="mb-3" style="font-weight: normal;">Book Management</h1>
+        <p class="text-muted mb-0">Manage library books and their availability</p>
+    </div>
+
+    <div class="search-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <form class="d-flex flex-grow-1 me-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text"
+                           class="form-control border-start-0"
+                           placeholder="Search books..."
+                           id="searchInput">
+                </div>
+            </form>
+            <div class="d-flex gap-2">
+                <a asp-action="ArchivedBooks" class="btn btn-outline-secondary">
+                    <i class="fas fa-archive me-2"></i>Archived Books
+                </a>
+                <a asp-action="AddBook" class="btn add-user-btn text-white">
+                    <i class="fas fa-plus me-2"></i>Add New Book
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="books-list">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-4 text-muted">
+                <i class="fas fa-book-open fa-2x mb-3"></i>
+                <div>No books found in the system</div>
+                <small>Start by adding your first book!</small>
+            </div>
+        }
+        else
+        {
+            var booksBySubject = Model
+            .SelectMany(b => b.BookSubjects.DefaultIfEmpty(),
+            (book, bookSubject) => new
+            {
+                Book = book,
+                Subject = bookSubject?.Subject,
+                SubjectName = bookSubject?.Subject?.SubjectName ?? "Uncategorized"
+            })
+            .GroupBy(x => x.SubjectName)
+            .OrderBy(g => g.Key);
+
+            <div class="row">
+                @foreach (var subjectGroup in booksBySubject)
+                {
+                    <div class="col-12 subject-card">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-dark bg-gradient text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-tag me-2"></i>
+                                    @subjectGroup.Key
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+                                    @foreach (var item in subjectGroup.OrderBy(x => x.Book.Title))
+                                    {
+                                        var book = item.Book;
+                                        <div class="col book-item">
+                                            <div class="card h-100 book-card">
+                                                <a asp-action="ViewBook" asp-controller="SystemAdmin" asp-route-id="@book.BookID"
+                                                   class="book-card-link p-3">
+                                                    <div class="d-flex align-items-start gap-3">
+                                                        @if (!string.IsNullOrEmpty(book.CoverImageUrl))
+                                                        {
+                                                            <img src="@book.CoverImageUrl"
+                                                                 class="book-cover"
+                                                                 alt="@book.Title cover">
+                                                        }
+                                                        <div class="flex-grow-1">
+                                                            <h6 class="card-title">@book.Title</h6>
+                                                            <p class="card-text text-muted small mb-2">@book.Author</p>
+                                                            <span class="badge @(book.IsAvailable ? "bg-success" : "bg-danger")">
+                                                                @(book.IsAvailable ? "Available" : "Not Available")
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                                <div class="card-footer bg-transparent action-buttons">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <small class="text-muted">ISBN: @book.ISBN</small>
+                                                        <div>
+                                                            <a asp-action="EditBook" asp-route-id="@book.BookID" class="btn btn-sm btn-outline-primary"
+                                                               onclick="event.stopPropagation();">
+                                                                <i class="fas fa-edit"></i>
+                                                            </a>
+                                                            <a asp-action="ArchiveBook" asp-route-id="@book.BookID" class="btn btn-sm btn-outline-secondary ms-1"
+                                                               onclick="event.stopPropagation();">
+                                                                <i class="fas fa-archive"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            document.querySelectorAll('.book-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+}

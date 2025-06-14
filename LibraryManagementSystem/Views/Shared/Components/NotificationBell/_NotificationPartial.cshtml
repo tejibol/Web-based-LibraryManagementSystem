@@ -1,0 +1,33 @@
+﻿@model List<Notification>
+
+<li class="nav-item dropdown">
+    <a class="nav-link position-relative" href="#" id="notificationDropdown" role="button"
+       data-bs-toggle="dropdown" aria-expanded="false" data-notification-bell>
+        <i class="fas fa-bell fa-lg"></i>
+        @if (Model.Any(n => !n.IsRead))
+        {
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                @Model.Count(n => !n.IsRead)
+            </span>
+        }
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notificationDropdown" style="min-width: 300px;">
+        @if (Model.Any())
+        {
+            @foreach (var notif in Model.OrderByDescending(n => n.CreatedAt))
+            {
+                <li>
+                    <a class="dropdown-item @(!notif.IsRead ? "fw-bold bg-light" : "")"
+                       href="@Url.Action("MarkAsReadAndRedirect", "Notification", new { id = notif.NotificationId })">
+                        @notif.Message <br />
+                        <small class="text-muted">@notif.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                    </a>
+                </li>
+            }
+        }
+        else
+        {
+            <li class="dropdown-item text-muted">No notifications</li>
+        }
+    </ul>
+</li>

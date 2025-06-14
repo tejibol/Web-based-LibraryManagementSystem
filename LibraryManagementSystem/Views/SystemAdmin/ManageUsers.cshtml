@@ -1,0 +1,240 @@
+﻿@using Microsoft.AspNetCore.Identity
+@model List<UserViewModel>
+@inject UserManager<ApplicationUser> UserManager
+@{
+    ViewData["Title"] = "Manage Users";
+}
+
+@section Styles {
+<style>
+    body {
+    padding-top: 50px; /* Adjust this value as needed */
+    }
+
+    .user-management-container {
+    margin-left: 220px;
+    padding: 2rem;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    }
+
+    .management-header {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+    animation: slideDown 0.5s ease;
+    }
+
+    .search-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+    }
+
+    .users-table {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    animation: fadeIn 0.8s ease;
+    }
+
+    .table thead {
+    background: linear-gradient(45deg, #2c3e50, #3498db);
+    color: white;
+    }
+
+    .table th {
+    border: none;
+    padding: 1rem;
+    font-weight: 500;
+    }
+
+    .table td {
+    padding: 1rem;
+    vertical-align: middle;
+    transition: all 0.3s ease;
+    }
+
+    .table tr:hover td {
+    background: rgba(52, 152, 219, 0.05);
+    transform: translateX(5px);
+    }
+
+    .action-buttons .btn {
+    padding: 0.4rem 0.8rem;
+    margin: 0 3px;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    }
+
+    .btn-edit:hover {
+    background: #3498db;
+    color: white;
+    }
+
+    .btn-delete:hover {
+    background: #e74c3c;
+    color: white;
+    }
+
+    .add-user-btn {
+    background: #2ecc71;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+    }
+
+    .add-user-btn:hover {
+    transform: translateY(-2px);
+    }
+
+    @@keyframes slideDown {
+    from {
+    transform: translateY(-20px);
+    opacity: 0;
+    }
+
+    to {
+    transform: translateY(0);
+    opacity: 1;
+    }
+    }
+
+    @@keyframes fadeIn {
+    from {
+    opacity: 0;
+    }
+
+    to {
+    opacity: 1;
+    }
+    }
+</style>
+}
+
+<div class="user-management-container">
+    <div class="management-header">
+        <h1 class="display-6 mb-3">User Management</h1>
+        <p class="text-muted">Manage system users and their permissions</p>
+    </div>
+
+    <div class="search-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <form class="d-flex flex-grow-1 me-3" method="get" action="/SystemAdmin/ManageUsers">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input class="form-control border-start-0"
+                    type="search"
+                    name="searchTerm"
+                    placeholder="Search users...">
+                </div>
+            </form>
+            <a href="/SystemAdmin/ArchivedUsers" class="btn btn-secondary me-2">
+                <i class="fas fa-archive me-2"></i>Archived Accounts
+            </a>
+            <a href="/SystemAdmin/CreateUser" class="btn add-user-btn text-white">
+                <i class="fas fa-user-plus me-2"></i>Add New User
+            </a>
+        </div>
+    </div>
+
+    <div class="users-table">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Count > 0)
+                {
+                    foreach (var user in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-placeholder me-3">
+                                        <i class="fas fa-user-circle fa-lg text-secondary"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-medium">
+                                            <a href="/SystemAdmin/ViewProfile/@user.UserId"
+                                            class="text-decoration-none text-dark"
+                                            title="View Profile">
+                                                @user.FullName
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@user.Email</td>
+                            <td>
+                                <span class="badge bg-primary rounded-pill">@user.Role</span>
+                            </td>
+                            <td>@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            <td class="action-buttons">
+                                @{
+                                    var currentUser = await UserManager.GetUserAsync(User);
+                                    var isCurrentUser = user.UserId == currentUser.Id;
+                                }
+                                @if (!isCurrentUser && user.Role != "SystemAdmin")
+                                {
+                                    <a href="/SystemAdmin/EditUser/@user.UserId"
+                                       class="btn btn-sm btn-edit btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form asp-action="ArchiveUser" method="post" style="display: inline;" onsubmit="return confirmArchive(event)">
+                                        <input type="hidden" name="id" value="@user.UserId" />
+                                        <button type="submit" class="btn btn-sm btn-warning">Archive</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            <i class="fas fa-users-slash fa-2x mb-3"></i>
+                            <div>No users found</div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add confirmation for delete actions
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (!confirm('Are you sure you want to delete this user?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        // Add confirmation for archive action
+        function confirmArchive(event) {
+            return confirm('Are you sure you want to archive this account? This action can be reversed later.');
+        }
+    </script>
+
+    <!-- Add Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+}

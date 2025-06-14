@@ -1,0 +1,274 @@
+@model List<ActivityLogViewModel>
+@{
+    ViewData["Title"] = "System Activity Log";
+}
+
+@section Styles {
+    <style>
+        body {
+            padding-top: 60px;
+            margin-left: 220px;
+        }
+
+        .activity-container {
+            padding: 2rem;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .activity-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .filter-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .activity-timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .activity-item {
+            position: relative;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        .activity-item:hover {
+            transform: translateX(5px);
+        }
+
+        .activity-item::before {
+            content: '';
+            position: absolute;
+            left: -2rem;
+            top: 50%;
+            width: 1rem;
+            height: 1rem;
+            background: white;
+            border: 2px solid var(--bs-primary);
+            border-radius: 50%;
+            transform: translateY(-50%);
+        }
+
+        .activity-item::after {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e9ecef;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex-grow: 1;
+        }
+
+        .activity-time {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .activity-user {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .activity-book {
+            color: #3498db;
+            font-weight: 500;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #adb5bd;
+            margin-bottom: 1rem;
+        }
+    </style>
+}
+
+<div class="activity-container">
+    <div class="activity-header">
+        <h1 class="display-6 mb-3">System Activity Log</h1>
+        <p class="text-muted">Track and monitor all activities across the library management system</p>
+    </div>
+
+    <div class="filter-card">
+        <form method="get">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" name="searchTerm" class="form-control border-start-0" 
+                               placeholder="Search activities..." value="@ViewBag.SearchTerm">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <select name="activityType" class="form-select">
+                        <option value="">All Activities</option>
+                        @foreach (var type in ViewBag.ActivityTypes)
+                        {
+                            <option value="@type" selected="@(ViewBag.SelectedActivityType == type)">
+                                @type.Replace("Request", " Request")
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="userRole" class="form-select">
+                        <option value="">All Roles</option>
+                        <option value="Borrower" selected="@(ViewBag.SelectedRole == "Borrower")">Borrower</option>
+                        <option value="Librarian" selected="@(ViewBag.SelectedRole == "Librarian")">Librarian</option>
+                        <option value="SchoolAdmin" selected="@(ViewBag.SelectedRole == "SchoolAdmin")">School Admin</option>
+                        <option value="SystemAdmin" selected="@(ViewBag.SelectedRole == "SystemAdmin")">System Admin</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent">
+                            <i class="fas fa-calendar-alt text-muted"></i>
+                        </span>
+                        <input type="text" id="dateRangePicker" class="form-control" placeholder="Date Range" />
+                        <input type="hidden" id="startDate" name="startDate" value="@ViewBag.StartDate" />
+                        <input type="hidden" id="endDate" name="endDate" value="@ViewBag.EndDate" />
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-2"></i>Filter
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="activity-timeline">
+            @foreach (var activity in Model)
+            {
+                <div class="activity-item d-flex align-items-start">
+                    <div class="activity-icon bg-@activity.ActivityColor bg-opacity-10 text-@activity.ActivityColor">
+                        <i class="fas @activity.ActivityIcon"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="activity-user">@activity.PerformedBy</span>
+                                @activity.Description
+                                @if (!string.IsNullOrEmpty(activity.BookTitle))
+                                {
+                                    <span class="activity-book">@activity.BookTitle</span>
+                                }
+                                @if (!string.IsNullOrEmpty(activity.AffectedUser))
+                                {
+                                    <span class="text-muted">for @activity.AffectedUser</span>
+                                }
+                            </div>
+                            <div class="activity-time">
+                                @activity.Timestamp.ToString("MMM dd, yyyy HH:mm")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-history"></i>
+            <h5 class="mt-3">No activities found</h5>
+            <p class="text-muted">Try adjusting your filters or search criteria</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <!-- Add daterangepicker library -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    
+    <script>
+        $(function() {
+            // Configure the date range picker
+            var startDate = @(string.IsNullOrEmpty(ViewBag.StartDate?.ToString()) ? "null" : $"'{ViewBag.StartDate}'");
+            var endDate = @(string.IsNullOrEmpty(ViewBag.EndDate?.ToString()) ? "null" : $"'{ViewBag.EndDate}'");
+            
+            var dateRangeSettings = {
+                autoUpdateInput: false,
+                locale: {
+                    cancelLabel: 'Clear',
+                    format: 'YYYY-MM-DD'
+                },
+                opens: 'left'
+            };
+            
+            // Set initial dates if they exist
+            if (startDate && endDate) {
+                dateRangeSettings.startDate = moment(startDate);
+                dateRangeSettings.endDate = moment(endDate);
+                
+                // Format for display
+                $('#dateRangePicker').val(
+                    moment(startDate).format('MM/DD/YYYY') + ' - ' + 
+                    moment(endDate).format('MM/DD/YYYY')
+                );
+            }
+            
+            // Initialize daterangepicker
+            $('#dateRangePicker').daterangepicker(dateRangeSettings);
+            
+            // Handle apply event
+            $('#dateRangePicker').on('apply.daterangepicker', function(ev, picker) {
+                $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
+                $('#startDate').val(picker.startDate.format('YYYY-MM-DD'));
+                $('#endDate').val(picker.endDate.format('YYYY-MM-DD'));
+            });
+            
+            // Handle cancel event
+            $('#dateRangePicker').on('cancel.daterangepicker', function(ev, picker) {
+                $(this).val('');
+                $('#startDate').val('');
+                $('#endDate').val('');
+            });
+        });
+    </script>
+} 

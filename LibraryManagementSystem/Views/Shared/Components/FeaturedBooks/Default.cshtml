@@ -1,0 +1,43 @@
+@model List<LibraryManagementSystem.Models.Book>
+
+<div class="featured-books-grid">
+    @foreach (var book in Model)
+    {
+        <div class="featured-book-card">
+            <div class="book-card-inner">
+                <div class="book-cover-wrapper">
+                    @if (!string.IsNullOrEmpty(book.CoverImageUrl))
+                    {
+                        <img src="@book.CoverImageUrl" class="book-cover" alt="@book.Title cover">
+                    }
+                    else
+                    {
+                        <div class="book-cover-placeholder">
+                            <i class="fas fa-book fa-3x"></i>
+                        </div>
+                    }
+                    <div class="book-hover-info">
+                        <div class="hover-content">
+                            <p class="book-description">@(string.IsNullOrEmpty(book.Description) ? "No description available." : (book.Description.Length > 150 ? book.Description.Substring(0, 147) + "..." : book.Description))</p>
+                            <a href="@Url.Action("ViewBook", "Home", new { id = book.BookID })" class="view-details-btn">
+                                View Details
+                                <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="book-info">
+                    <h5 class="book-title" title="@book.Title">@book.Title</h5>
+                    <p class="book-author">by @book.Author</p>
+                    <div class="book-meta">
+                        <div class="book-isbn">ISBN: @(string.IsNullOrEmpty(book.ISBN) ? "N/A" : book.ISBN)</div>
+                        <div class="book-status @(book.BookCopies.Any(c => c.IsAvailable) ? "available" : "borrowed")">
+                            <i class="fas @(book.BookCopies.Any(c => c.IsAvailable) ? "fa-check-circle" : "fa-clock")"></i>
+                            @(book.BookCopies.Any(c => c.IsAvailable) ? "Available" : "Borrowed")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div> 

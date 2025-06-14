@@ -1,0 +1,132 @@
+@model LibraryManagementSystem.Models.Book
+
+@{
+    ViewData["Title"] = "Archive Book";
+}
+
+@section Styles {
+    <style>
+        body {
+            padding-top: 50px;
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+            min-height: 100vh;
+        }
+
+        .archive-container {
+            margin-left: 220px;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .archive-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .warning-box {
+            background-color: #fff8f8;
+            border-left: 4px solid #f0ad4e;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .book-details {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .book-cover {
+            width: 120px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .book-info h4 {
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .book-meta {
+            color: #666;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .action-buttons .btn {
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+    </style>
+}
+
+<div class="archive-container">
+    <div class="archive-card">
+        <h2 class="mb-4">Confirm Archive</h2>
+        
+        <div class="warning-box">
+            <h5 class="text-warning mb-2">Warning!</h5>
+            <p class="mb-0">You are about to archive this book. It will no longer appear in the main book collection but can be restored later if needed.</p>
+        </div>
+
+        <div class="book-details">
+            <div class="book-image">
+                @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+                {
+                    <img src="@Model.CoverImageUrl" class="book-cover" alt="@Model.Title cover">
+                }
+                else
+                {
+                    <div class="book-cover-placeholder">
+                        <i class="fas fa-book fa-4x text-secondary"></i>
+                    </div>
+                }
+            </div>
+            <div class="book-info">
+                <h4>@Model.Title</h4>
+                <div class="book-meta">
+                    <div><strong>Author:</strong> @Model.Author</div>
+                    <div><strong>ISBN:</strong> @Model.ISBN</div>
+                    <div><strong>Total Copies:</strong> @Model.BookCopies.Count</div>
+                    <div><strong>Subject(s):</strong> 
+                        @string.Join(", ", Model.BookSubjects.Select(bs => bs.Subject?.SubjectName ?? "Unknown"))
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form asp-action="ArchiveBook" method="post" id="archiveForm">
+            <input type="hidden" asp-for="BookID" />
+            
+            <div class="action-buttons d-flex justify-content-between">
+                <a asp-action="ManageBooks" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Cancel
+                </a>
+                <button type="button" class="btn btn-warning" id="archiveButton">
+                    <i class="fas fa-archive me-2"></i>Archive Book
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script>
+        document.getElementById('archiveButton').addEventListener('click', function() {
+            if (confirm('Are you sure you want to archive "@Model.Title"? This book will be removed from the main collection.')) {
+                document.getElementById('archiveForm').submit();
+            }
+        });
+    </script>
+} 

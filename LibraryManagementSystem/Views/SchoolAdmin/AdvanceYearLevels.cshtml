@@ -1,0 +1,162 @@
+@model IList<LibraryManagementSystem.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "Advance Student Year Levels";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    
+    string GetNewSection(string currentSection, string newYearLevel)
+    {
+        if (string.IsNullOrEmpty(currentSection) || !currentSection.Contains("-S"))
+            return "To be assigned";
+            
+        string[] parts = currentSection.Split('-');
+        if (parts.Length < 2 || !parts[1].StartsWith("S"))
+            return "To be assigned";
+            
+        string sectionNumber = parts[1]; // e.g., "S1"
+        
+        if (newYearLevel == "Grade 8")
+        {
+            switch (sectionNumber)
+            {
+                case "S1": return "Section 1 - Rizal";
+                case "S2": return "Section 2 - Bonifacio";
+                case "S3": return "Section 3 - Mabini";
+                case "S4": return "Section 4 - Luna";
+                case "S5": return "Section 5 - Silang";
+                default: return "Section 1 - Rizal";
+            }
+        }
+        else if (newYearLevel == "Grade 9")
+        {
+            switch (sectionNumber)
+            {
+                case "S1": return "Section 1 - Sampaguita";
+                case "S2": return "Section 2 - Gumamela";
+                case "S3": return "Section 3 - Ilang-Ilang";
+                case "S4": return "Section 4 - Camia";
+                case "S5": return "Section 5 - Rosal";
+                default: return "Section 1 - Sampaguita";
+            }
+        }
+        else if (newYearLevel == "Grade 10")
+        {
+            switch (sectionNumber)
+            {
+                case "S1": return "Section 1 - Sapphire";
+                case "S2": return "Section 2 - Emerald";
+                case "S3": return "Section 3 - Ruby";
+                case "S4": return "Section 4 - Diamond";
+                case "S5": return "Section 5 - Pearl";
+                default: return "Section 1 - Sapphire";
+            }
+        }
+        
+        return "To be assigned";
+    }
+    
+    string GetDisplaySection(string section)
+    {
+        if (string.IsNullOrEmpty(section))
+            return "Not assigned";
+            
+        if (section.Contains("-"))
+        {
+            string[] parts = section.Split('-');
+            if (parts.Length >= 3)
+            {
+                string sectionNumber = parts[1].Replace("S", "Section ");
+                string sectionName = parts[2];
+                return $"{sectionNumber} - {sectionName}";
+            }
+        }
+        
+        return section;
+    }
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Advance Student Year Levels</h4>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Warning:</strong> This operation will advance all students to the next grade level. Students in Grade 10 will be marked as graduated and archived.
+                Students will maintain their section number as they advance (Section 1 → Section 1 in the next grade).
+                Please review the list carefully before proceeding.
+            </div>
+
+            <form asp-action="AdvanceYearLevelsConfirm" method="post">
+                <table class="table table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Current Year</th>
+                            <th>Current Section</th>
+                            <th>New Year Level</th>
+                            <th>New Section</th>
+                            <th>Exclude</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var student in Model)
+                        {
+                            string newYearLevel = "N/A";
+                            string statusClass = "";
+                            
+                            if (!string.IsNullOrEmpty(student.YearLevel) && student.YearLevel.StartsWith("Grade "))
+                            {
+                                if (int.TryParse(student.YearLevel.Substring(6), out int grade))
+                                {
+                                    if (grade < 10)
+                                    {
+                                        newYearLevel = $"Grade {grade + 1}";
+                                    }
+                                    else
+                                    {
+                                        newYearLevel = "Graduated";
+                                        statusClass = "table-warning";
+                                    }
+                                }
+                            }
+
+                            <tr class="@statusClass">
+                                <td>@student.FirstName @student.LastName</td>
+                                <td>@student.YearLevel</td>
+                                <td>@GetDisplaySection(student.Section)</td>
+                                <td>@newYearLevel</td>
+                                <td>
+                                    @if (newYearLevel != "Graduated" && newYearLevel != "N/A")
+                                    {
+                                        @GetNewSection(student.Section, newYearLevel)
+                                    }
+                                    else
+                                    {
+                                        <span>N/A</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="excludeStudents" value="@student.Id">
+                                        <label class="form-check-label">Exclude</label>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <a asp-action="Dashboard" class="btn btn-secondary me-2">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    <button type="submit" name="confirmAdvancement" value="true" class="btn btn-success">
+                        <i class="fas fa-arrow-up me-2"></i>Confirm Year Level Advancement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div> 

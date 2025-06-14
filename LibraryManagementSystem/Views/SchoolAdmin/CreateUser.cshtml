@@ -1,0 +1,618 @@
+@model CreateUserViewModel
+@{
+    ViewData["Title"] = "Create New User";
+}
+
+@section Styles {
+    <style>
+        body {
+            padding-top: 50px;
+        }
+
+        .create-user-container {
+            margin-left: 220px;
+            padding: 2rem;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .create-user-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            animation: slideDown 0.5s ease;
+        }
+
+        .card-header {
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            padding: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .btn-submit {
+            background: #2ecc71;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(46, 204, 113, 0.2);
+        }
+
+        .btn-cancel {
+            background: #e74c3c;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(231, 76, 60, 0.2);
+        }
+
+        .validation-error {
+            color: #e74c3c;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .lrn-checking {
+            color: #3498db;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .lrn-exists {
+            color: #e74c3c;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .lrn-available {
+            color: #2ecc71;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        @@keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .student-fields {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .section-group {
+            display: none;
+        }
+        
+        /* Password strength indicator styles */
+        .password-wrapper {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 17px;
+            cursor: pointer;
+            color: #777;
+            z-index: 10;
+            background: transparent;
+            border: none;
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+        
+        .password-toggle:hover {
+            color: #3498db;
+        }
+        
+        .password-strength-meter {
+            height: 5px;
+            width: 100%;
+            background: #DDD;
+            margin-top: 10px;
+            border-radius: 3px;
+        }
+        
+        .password-strength-meter-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+        
+        .strength-weak {
+            background-color: #e74c3c;
+            width: 25%;
+        }
+        
+        .strength-fair {
+            background-color: #f39c12;
+            width: 50%;
+        }
+        
+        .strength-good {
+            background-color: #3498db;
+            width: 75%;
+        }
+        
+        .strength-strong {
+            background-color: #2ecc71;
+            width: 100%;
+        }
+        
+        .password-requirements {
+            margin-top: 10px;
+            font-size: 0.75rem;
+            color: #7f8c8d;
+        }
+        
+        .requirement {
+            margin-bottom: 2px;
+        }
+        
+        .requirement i {
+            margin-right: 5px;
+        }
+        
+        .requirement-met {
+            color: #2ecc71;
+        }
+        
+        .requirement-unmet {
+            color: #e74c3c;
+        }
+    </style>
+}
+
+<div class="create-user-container">
+    <div class="create-user-card">
+        <div class="card-header">
+            <h2 class="mb-0">Create New User</h2>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="CreateUser" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4"></div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="FirstName" class="form-label">First Name</label>
+                            <input asp-for="FirstName" class="form-control" />
+                            <span asp-validation-for="FirstName" class="validation-error"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="LastName" class="form-label">Last Name</label>
+                            <input asp-for="LastName" class="form-control" />
+                            <span asp-validation-for="LastName" class="validation-error"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">Email</label>
+                            <input asp-for="Email" class="form-control" type="email" />
+                            <span asp-validation-for="Email" class="validation-error"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">Password</label>
+                            <div class="password-wrapper">
+                                <input asp-for="Password" class="form-control" type="password" id="passwordInput" autocomplete="new-password" />
+                                <button type="button" class="password-toggle" id="passwordToggle">
+                                </button>
+                            </div>
+                            <div class="password-strength-meter">
+                                <div class="password-strength-meter-fill" id="strengthMeter"></div>
+                            </div>
+                            <div class="password-requirements">
+                                <div class="requirement" id="lengthReq">
+                                    <i class="fas fa-times-circle requirement-unmet"></i> At least 8 characters
+                                </div>
+                                <div class="requirement" id="uppercaseReq">
+                                    <i class="fas fa-times-circle requirement-unmet"></i> At least 1 uppercase letter
+                                </div>
+                                <div class="requirement" id="lowercaseReq">
+                                    <i class="fas fa-times-circle requirement-unmet"></i> At least 1 lowercase letter
+                                </div>
+                                <div class="requirement" id="numberReq">
+                                    <i class="fas fa-times-circle requirement-unmet"></i> At least 1 number
+                                </div>
+                                <div class="requirement" id="specialReq">
+                                    <i class="fas fa-times-circle requirement-unmet"></i> At least 1 special character
+                                </div>
+                            </div>
+                            <span asp-validation-for="Password" class="validation-error"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Role" class="form-label">Role</label>
+                            <select asp-for="Role" class="form-select" id="roleSelect">
+                                <option value="">Select Role</option>
+                                <option value="Student">Student</option>
+                                <option value="Teacher">Teacher</option>
+                                <option value="Librarian">Librarian</option>
+                            </select>
+                            <span asp-validation-for="Role" class="validation-error"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="studentFields" class="student-fields">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="LRN" class="form-label">Student ID</label>
+                                <input asp-for="LRN" class="form-control" id="lrnInput" />
+                                <span asp-validation-for="LRN" class="validation-error"></span>
+                                <span id="lrnChecking" class="lrn-checking"><i class="fas fa-spinner fa-spin me-1"></i> Checking availability...</span>
+                                <span id="lrnExists" class="lrn-exists"><i class="fas fa-times-circle me-1"></i> This Student ID is already in use.</span>
+                                <span id="lrnAvailable" class="lrn-available"><i class="fas fa-check-circle me-1"></i> Student ID is available.</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="YearLevel" class="form-label">Grade</label>
+                                <select asp-for="YearLevel" class="form-select" id="yearLevelSelect">
+                                    <option value="">Select Grade</option>
+                                    <option value="Grade 7">Grade 7</option>
+                                    <option value="Grade 8">Grade 8</option>
+                                    <option value="Grade 9">Grade 9</option>
+                                    <option value="Grade 10">Grade 10</option>
+                                </select>
+                                <span asp-validation-for="YearLevel" class="validation-error"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Section" class="form-label">Section</label>
+                                
+                                <!-- Grade 7 Sections (Filipino Values) -->
+                                <select asp-for="Section" class="form-select section-group" id="grade7Sections">
+                                    <option value="">Select Section</option>
+                                    <option value="G7-S1-Malasakit">Section 1 - Malasakit (Compassion)</option>
+                                    <option value="G7-S2-Bayanihan">Section 2 - Bayanihan (Community Spirit)</option>
+                                    <option value="G7-S3-Kalayaan">Section 3 - Kalayaan (Freedom)</option>
+                                    <option value="G7-S4-Kagitingan">Section 4 - Kagitingan (Courage)</option>
+                                    <option value="G7-S5-Karangalan">Section 5 - Karangalan (Honor)</option>
+                                </select>
+                                
+                                <!-- Grade 8 Sections (Filipino Heroes) -->
+                                <select asp-for="Section" class="form-select section-group" id="grade8Sections">
+                                    <option value="">Select Section</option>
+                                    <option value="G8-S1-Rizal">Section 1 - Rizal</option>
+                                    <option value="G8-S2-Bonifacio">Section 2 - Bonifacio</option>
+                                    <option value="G8-S3-Mabini">Section 3 - Mabini</option>
+                                    <option value="G8-S4-Luna">Section 4 - Luna</option>
+                                    <option value="G8-S5-Silang">Section 5 - Silang</option>
+                                </select>
+                                
+                                <!-- Grade 9 Sections (Filipino Flowers) -->
+                                <select asp-for="Section" class="form-select section-group" id="grade9Sections">
+                                    <option value="">Select Section</option>
+                                    <option value="G9-S1-Sampaguita">Section 1 - Sampaguita</option>
+                                    <option value="G9-S2-Gumamela">Section 2 - Gumamela</option>
+                                    <option value="G9-S3-Ilang-Ilang">Section 3 - Ilang-Ilang</option>
+                                    <option value="G9-S4-Camia">Section 4 - Camia</option>
+                                    <option value="G9-S5-Rosal">Section 5 - Rosal</option>
+                                </select>
+                                
+                                <!-- Grade 10 Sections (Precious Stones) -->
+                                <select asp-for="Section" class="form-select section-group" id="grade10Sections">
+                                    <option value="">Select Section</option>
+                                    <option value="G10-S1-Sapphire">Section 1 - Sapphire</option>
+                                    <option value="G10-S2-Emerald">Section 2 - Emerald</option>
+                                    <option value="G10-S3-Ruby">Section 3 - Ruby</option>
+                                    <option value="G10-S4-Diamond">Section 4 - Diamond</option>
+                                    <option value="G10-S5-Pearl">Section 5 - Pearl</option>
+                                </select>
+                                
+                                <span asp-validation-for="Section" class="validation-error"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3 mt-4">
+                    <a href="/SchoolAdmin/ManageUsers" class="btn btn-cancel text-white">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-submit text-white" id="submitBtn">
+                        <i class="fas fa-user-plus me-2"></i>Create User
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Toggle student fields when role changes
+        document.getElementById('roleSelect').addEventListener('change', function() {
+            const studentFields = document.getElementById('studentFields');
+            if (this.value === 'Student') {
+                studentFields.style.display = 'block';
+            } else {
+                studentFields.style.display = 'none';
+            }
+        });
+        
+        // Show sections based on year level
+        document.getElementById('yearLevelSelect').addEventListener('change', function() {
+            // Hide all section groups first
+            const sectionGroups = document.querySelectorAll('.section-group');
+            sectionGroups.forEach(group => {
+                group.style.display = 'none';
+            });
+            
+            // Show the appropriate section group based on selected year level
+            const yearLevel = this.value;
+            if (yearLevel === 'Grade 7') {
+                document.getElementById('grade7Sections').style.display = 'block';
+            } else if (yearLevel === 'Grade 8') {
+                document.getElementById('grade8Sections').style.display = 'block';
+            } else if (yearLevel === 'Grade 9') {
+                document.getElementById('grade9Sections').style.display = 'block';
+            } else if (yearLevel === 'Grade 10') {
+                document.getElementById('grade10Sections').style.display = 'block';
+            }
+        });
+        
+        // Initialize displays on page load
+        window.onload = function() {
+            // Check if role is student
+            const roleSelect = document.getElementById('roleSelect');
+            if (roleSelect.value === 'Student') {
+                document.getElementById('studentFields').style.display = 'block';
+                
+                // Check year level and show appropriate section dropdown
+                const yearLevel = document.getElementById('yearLevelSelect').value;
+                if (yearLevel === 'Grade 7') {
+                    document.getElementById('grade7Sections').style.display = 'block';
+                } else if (yearLevel === 'Grade 8') {
+                    document.getElementById('grade8Sections').style.display = 'block';
+                } else if (yearLevel === 'Grade 9') {
+                    document.getElementById('grade9Sections').style.display = 'block';
+                } else if (yearLevel === 'Grade 10') {
+                    document.getElementById('grade10Sections').style.display = 'block';
+                }
+            }
+        };
+        
+        // Password validation and strength checker
+        const passwordInput = document.getElementById('passwordInput');
+        const strengthMeter = document.getElementById('strengthMeter');
+        const lengthReq = document.getElementById('lengthReq');
+        const uppercaseReq = document.getElementById('uppercaseReq');
+        const lowercaseReq = document.getElementById('lowercaseReq');
+        const numberReq = document.getElementById('numberReq');
+        const specialReq = document.getElementById('specialReq');
+        const submitBtn = document.getElementById('submitBtn');
+        const passwordToggle = document.getElementById('passwordToggle');
+        
+        // Function to update requirement status
+        function updateRequirement(requirement, isValid) {
+            const icon = requirement.querySelector('i');
+            if (isValid) {
+                icon.classList.remove('fa-times-circle', 'requirement-unmet');
+                icon.classList.add('fa-check-circle', 'requirement-met');
+                requirement.classList.add('requirement-met');
+                requirement.classList.remove('requirement-unmet');
+            } else {
+                icon.classList.add('fa-times-circle', 'requirement-unmet');
+                icon.classList.remove('fa-check-circle', 'requirement-met');
+                requirement.classList.remove('requirement-met');
+                requirement.classList.add('requirement-unmet');
+            }
+        }
+        
+        // Password toggle function
+        passwordToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            const passwordInput = document.getElementById('passwordInput');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            // Toggle eye icon
+            const icon = this.querySelector('i');
+            if (type === 'text') {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+        
+        // Check password strength on input
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            let strength = 0;
+            
+            // Check length
+            const hasMinLength = password.length >= 8;
+            updateRequirement(lengthReq, hasMinLength);
+            if (hasMinLength) strength += 1;
+            
+            // Check uppercase
+            const hasUppercase = /[A-Z]/.test(password);
+            updateRequirement(uppercaseReq, hasUppercase);
+            if (hasUppercase) strength += 1;
+            
+            // Check lowercase
+            const hasLowercase = /[a-z]/.test(password);
+            updateRequirement(lowercaseReq, hasLowercase);
+            if (hasLowercase) strength += 1;
+            
+            // Check numbers
+            const hasNumber = /[0-9]/.test(password);
+            updateRequirement(numberReq, hasNumber);
+            if (hasNumber) strength += 1;
+            
+            // Check special characters
+            const hasSpecial = /[!@@#$%^&*(),.?":{}|<>]/.test(password);
+            updateRequirement(specialReq, hasSpecial);
+            if (hasSpecial) strength += 1;
+            
+            // Update strength meter
+            strengthMeter.className = 'password-strength-meter-fill';
+            if (strength === 0) {
+                strengthMeter.classList.add('strength-weak');
+                strengthMeter.style.width = '0%';
+            } else if (strength === 1) {
+                strengthMeter.classList.add('strength-weak');
+            } else if (strength === 2) {
+                strengthMeter.classList.add('strength-fair');
+            } else if (strength === 3 || strength === 4) {
+                strengthMeter.classList.add('strength-good');
+            } else {
+                strengthMeter.classList.add('strength-strong');
+            }
+        });
+        
+        // Form validation before submission
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const password = passwordInput.value;
+            
+            // Check if password meets all requirements
+            const hasMinLength = password.length >= 8;
+            const hasUppercase = /[A-Z]/.test(password);
+            const hasLowercase = /[a-z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            const hasSpecial = /[!@@#$%^&*(),.?":{}|<>]/.test(password);
+            
+            if (!(hasMinLength && hasUppercase && hasLowercase && hasNumber && hasSpecial)) {
+                e.preventDefault();
+                alert('Please ensure your password meets all the requirements.');
+                passwordInput.focus();
+                return;
+            }
+            
+            // Check if LRN is valid when role is Student
+            const roleSelect = document.getElementById('roleSelect');
+            if (roleSelect.value === 'Student') {
+                const lrnExists = document.getElementById('lrnExists');
+                if (lrnExists.style.display === 'block') {
+                    e.preventDefault();
+                    alert('The Student ID you entered is already in use. Please use a different Student ID.');
+                    document.getElementById('lrnInput').focus();
+                }
+            }
+        });
+
+        // LRN validation
+        const lrnInput = document.getElementById('lrnInput');
+        let lrnCheckTimeout;
+
+        lrnInput.addEventListener('input', function() {
+            const lrn = this.value.trim();
+            const lrnChecking = document.getElementById('lrnChecking');
+            const lrnExists = document.getElementById('lrnExists');
+            const lrnAvailable = document.getElementById('lrnAvailable');
+            
+            // Hide all status messages initially
+            lrnChecking.style.display = 'none';
+            lrnExists.style.display = 'none';
+            lrnAvailable.style.display = 'none';
+            
+            // Clear any existing timeout
+            clearTimeout(lrnCheckTimeout);
+            
+            // Don't check empty LRN
+            if (lrn === '') {
+                return;
+            }
+            
+            // Show checking message
+            lrnChecking.style.display = 'block';
+            
+            // Set a timeout to prevent too many requests
+            lrnCheckTimeout = setTimeout(function() {
+                // Make AJAX call to check LRN availability
+                fetch(`/SchoolAdmin/CheckLRNAvailability?lrn=${encodeURIComponent(lrn)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Hide checking message
+                        lrnChecking.style.display = 'none';
+                        
+                        // Show appropriate message based on response
+                        if (data.exists) {
+                            lrnExists.style.display = 'block';
+                            lrnAvailable.style.display = 'none';
+                        } else {
+                            lrnExists.style.display = 'none';
+                            lrnAvailable.style.display = 'block';
+                        }
+                    })
+                    .catch(() => {
+                        // Hide checking message on error
+                        lrnChecking.style.display = 'none';
+                    });
+            }, 500); // Wait 500ms after user stops typing
+        });
+    </script>
+
+    <!-- Add Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+}

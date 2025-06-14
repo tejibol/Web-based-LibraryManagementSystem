@@ -1,0 +1,306 @@
+@model EditUserViewModel
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+@section Styles {
+    <style>
+        body {
+            padding-top: 50px;
+        }
+
+        .edit-user-container {
+            margin-left: 220px;
+            padding: 2rem;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .edit-user-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            animation: slideDown 0.5s ease;
+        }
+
+        .card-header {
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            padding: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .btn-submit {
+            background: #2ecc71;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(46, 204, 113, 0.2);
+        }
+
+        .btn-cancel {
+            background: #e74c3c;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(231, 76, 60, 0.2);
+        }
+
+        .validation-error {
+            color: #e74c3c;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        @@keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .student-fields {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+}
+
+<div class="edit-user-container">
+    <div class="edit-user-card">
+        <div class="card-header">
+            <h2 class="mb-0">Edit User</h2>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="EditUser" method="post">
+                <input type="hidden" asp-for="Id" />
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4"></div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="FirstName" class="form-label">First Name</label>
+                            <input asp-for="FirstName" class="form-control" readonly />
+                            <span asp-validation-for="FirstName" class="validation-error"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="LastName" class="form-label">Last Name</label>
+                            <input asp-for="LastName" class="form-control" readonly />
+                            <span asp-validation-for="LastName" class="validation-error"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">Email</label>
+                            <input asp-for="Email" class="form-control" type="email" readonly />
+                            <span asp-validation-for="Email" class="validation-error"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">Password (leave blank to keep current)</label>
+                            <input asp-for="Password" class="form-control" type="password" />
+                            <span asp-validation-for="Password" class="validation-error"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Role" class="form-label">Role</label>
+                            <input asp-for="Role" class="form-control" readonly />
+                            <input type="hidden" asp-for="Role" />
+                            <span asp-validation-for="Role" class="validation-error"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="studentFields" class="student-fields">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="LRN" class="form-label">Learner's Reference Number (LRN)</label>
+                                <input asp-for="LRN" class="form-control" readonly />
+                                <span asp-validation-for="LRN" class="validation-error"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="YearLevel" class="form-label">Year Level</label>
+                                <input asp-for="YearLevel" class="form-control" readonly />
+                                <input type="hidden" asp-for="YearLevel" />
+                                <span asp-validation-for="YearLevel" class="validation-error"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Section" class="form-label">Section</label>
+                                <select asp-for="Section" class="form-select" id="sectionSelect">
+                                    <option value="">Select Section</option>
+                                    <!-- Options will be populated by JavaScript based on Year Level -->
+                                </select>
+                                <span asp-validation-for="Section" class="validation-error"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a asp-action="ManageUsers" class="btn btn-cancel text-white">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-submit text-white">
+                        <i class="fas fa-save me-2"></i>Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Define all section options organized by year level
+        const sectionOptions = {
+            'Grade 7': [
+                { value: 'G7-S1-Malasakit', text: 'Section 1 - Malasakit (Compassion)' },
+                { value: 'G7-S2-Bayanihan', text: 'Section 2 - Bayanihan (Community Spirit)' },
+                { value: 'G7-S3-Kalayaan', text: 'Section 3 - Kalayaan (Freedom)' },
+                { value: 'G7-S4-Kagitingan', text: 'Section 4 - Kagitingan (Courage)' },
+                { value: 'G7-S5-Karangalan', text: 'Section 5 - Karangalan (Honor)' }
+            ],
+            'Grade 8': [
+                { value: 'G8-S1-Rizal', text: 'Section 1 - Rizal' },
+                { value: 'G8-S2-Bonifacio', text: 'Section 2 - Bonifacio' },
+                { value: 'G8-S3-Mabini', text: 'Section 3 - Mabini' },
+                { value: 'G8-S4-Luna', text: 'Section 4 - Luna' },
+                { value: 'G8-S5-Silang', text: 'Section 5 - Silang' }
+            ],
+            'Grade 9': [
+                { value: 'G9-S1-Sampaguita', text: 'Section 1 - Sampaguita' },
+                { value: 'G9-S2-Gumamela', text: 'Section 2 - Gumamela' },
+                { value: 'G9-S3-Ilang-Ilang', text: 'Section 3 - Ilang-Ilang' },
+                { value: 'G9-S4-Camia', text: 'Section 4 - Camia' },
+                { value: 'G9-S5-Rosal', text: 'Section 5 - Rosal' }
+            ],
+            'Grade 10': [
+                { value: 'G10-S1-Sapphire', text: 'Section 1 - Sapphire' },
+                { value: 'G10-S2-Emerald', text: 'Section 2 - Emerald' },
+                { value: 'G10-S3-Ruby', text: 'Section 3 - Ruby' },
+                { value: 'G10-S4-Diamond', text: 'Section 4 - Diamond' },
+                { value: 'G10-S5-Pearl', text: 'Section 5 - Pearl' }
+            ]
+        };
+
+        // Function to populate section dropdown based on year level
+        function populateSectionDropdown(yearLevel, currentSection) {
+            const sectionSelect = document.getElementById('sectionSelect');
+            sectionSelect.innerHTML = '<option value="">Select Section</option>';
+            
+            if (sectionOptions[yearLevel]) {
+                sectionOptions[yearLevel].forEach(option => {
+                    const optElement = document.createElement('option');
+                    optElement.value = option.value;
+                    optElement.textContent = option.text;
+                    sectionSelect.appendChild(optElement);
+                });
+            }
+            
+            // Set the current section as selected
+            if (currentSection) {
+                sectionSelect.value = currentSection;
+            }
+            
+            console.log("Populated dropdown for year level:", yearLevel, "with current section:", currentSection);
+        }
+        
+        // Show/hide student fields based on selected role
+        document.addEventListener('DOMContentLoaded', function() {
+            const role = document.querySelector('input[name="Role"]').value;
+            const studentFields = document.getElementById('studentFields');
+            
+            console.log("Current role:", role);
+            
+            // Show student fields if role is Student
+            if (role === 'Student') {
+                studentFields.style.display = 'block';
+                
+                // Get the current year level from the read-only input
+                const yearLevel = document.querySelector('input[name="YearLevel"]').value;
+                console.log("Current year level:", yearLevel);
+                
+                // Get the current section value from the model binding
+                const currentSection = "@Model.Section";
+                console.log("Current section:", currentSection);
+                
+                // Populate section dropdown based on year level
+                populateSectionDropdown(yearLevel, currentSection);
+            } else {
+                studentFields.style.display = 'none';
+            }
+        });
+        
+        // Add form submit handler to log values being submitted
+        document.querySelector('form').addEventListener('submit', function(event) {
+            const role = document.querySelector('input[name="Role"]').value;
+            
+            if (role === 'Student') {
+                const sectionSelect = document.getElementById('sectionSelect');
+                console.log("Form submitting with section value:", sectionSelect.value);
+            }
+        });
+    </script>
+    
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

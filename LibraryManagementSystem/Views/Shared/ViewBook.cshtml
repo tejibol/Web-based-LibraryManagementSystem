@@ -1,0 +1,238 @@
+﻿@using LibraryManagementSystem.Data
+@model LibraryManagementSystem.Models.Book
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationDbContext Context
+
+@{
+    ViewData["Title"] = "Book Details";
+
+    var userId = UserManager.GetUserId(User);
+    var hasPendingRequest = await Context.BorrowRequests
+        .AnyAsync(r => r.BookID == Model.BookID &&
+                      r.UserID == userId &&
+                      r.Status == "Pending");
+    var currentBorrows = await Context.BorrowingHistories
+        .CountAsync(b => b.UserID == userId && !b.IsReturned);
+
+    var hasBorrowedCopy = await Context.BorrowingHistories
+    .AnyAsync(b => b.UserID == userId &&
+                  b.BookID == Model.BookID &&
+                  !b.IsReturned);
+
+    // Get available copies count
+    var availableCopies = await Context.BookCopies
+        .CountAsync(c => c.BookID == Model.BookID && c.IsAvailable);
+    var totalCopies = await Context.BookCopies
+        .CountAsync(c => c.BookID == Model.BookID);
+
+    // Pre-calculate all dynamic values
+    var backController = User.IsInRole("Librarian") || User.IsInRole("SystemAdmin") || User.IsInRole("SchoolAdmin")
+        ? "Librarian"
+        : "Student";
+    var backAction = backController == "Librarian" ? "ManageBooks" : "Collections";
+
+    var buttonClass = Model.IsAvailable && !hasPendingRequest && currentBorrows < 2 && !hasBorrowedCopy
+       ? "btn-outline-success"
+       : "btn-secondary disabled";
+    var buttonText = hasPendingRequest
+        ? "Request Pending"
+        : hasBorrowedCopy
+            ? "Already Borrowed"
+            : currentBorrows >= 2
+                ? "Borrow Limit Reached"
+                : "Request to Borrow";
+    var buttonTitle = hasPendingRequest
+        ? "You already have a pending request"
+        : hasBorrowedCopy
+            ? "You already have this book borrowed"
+            : currentBorrows >= 2
+                ? "Maximum 2 books borrowed"
+                : string.Empty;
+
+    var statusBadgeClass = Model.IsArchived 
+        ? "bg-warning" 
+        : (Model.IsAvailable ? "bg-success" : "bg-danger");
+    var statusBadgeText = Model.IsArchived 
+        ? "Archived"
+        : (Model.IsAvailable ? "Available" : "Not Available");
+}
+
+<div class="container py-5 px-3">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow border-0 rounded-4" style="min-height: 50vh;">
+                <!-- Header -->
+                <div class="card-header text-white rounded-top-4 py-3 px-4" style="background-color: #2c3e50;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0">@Model.Title</h2>
+                        <a asp-controller="@backController" asp-action="@backAction" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-left me-2"></i>Back
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Body -->
+                <div class="card-body px-4 py-4">
+                    <div class="row g-4 align-items-start">
+                        <!-- Book Cover -->
+                        <div class="col-md-5 text-center">
+                            <div class="position-relative">
+                                @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+                                {
+                                    <img src="@Model.CoverImageUrl" class="img-fluid rounded-3 shadow-sm book-cover" alt="Book Cover">
+                                    <span class="badge bg-white text-dark position-absolute top-0 end-0 m-2 shadow">
+                                        ISBN @Model.ISBN
+                                    </span>
+                                }
+                                else
+                                {
+                                    <div class="img-placeholder bg-light d-flex align-items-center justify-content-center rounded-3" style="height: 300px;">
+                                        <i class="fas fa-book-open fa-4x text-muted"></i>
+                                    </div>
+                                }
+                            </div>
+
+                            @if (Model.IsArchived)
+                            {
+                                <div class="alert alert-warning mt-3">
+                                    <i class="fas fa-archive me-2"></i>Temporary not Available
+                                </div>
+                            }
+
+                            @if (User.IsInRole("Librarian") || User.IsInRole("SystemAdmin") || User.IsInRole("SchoolAdmin"))
+                            {
+                                @if (Model.IsArchived)
+                                {
+                                    <a class="btn btn-secondary disabled mt-3 w-100" 
+                                       disabled="disabled" 
+                                       title="Book is currently archived">
+                                        <i class="fas fa-edit me-2"></i>Edit Book
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a asp-action="EditBook" asp-route-id="@Model.BookID"
+                                       class="btn btn-outline-primary mt-3 w-100">
+                                        <i class="fas fa-edit me-2"></i>Edit Book
+                                    </a>
+                                }
+                                
+                                @if (Model.IsArchived && User.IsInRole("SystemAdmin"))
+                                {
+                                    <form asp-action="RestoreBook" asp-route-id="@Model.BookID" method="post" class="mt-2">
+                                        <button type="submit" class="btn btn-outline-success w-100">
+                                            <i class="fas fa-undo-alt me-2"></i>Restore Book
+                                        </button>
+                                    </form>
+                                }
+                            }
+                            else if (User.IsInRole("Student") || User.IsInRole("Teacher"))
+                            {
+                                <a asp-action="RequestBook"
+                                   asp-route-id="@Model.BookID"
+                                   class="btn @(Model.IsArchived || !ViewBag.CanRequest ? "btn-secondary disabled" : "btn-outline-success") mt-3 w-100"
+                                   title="@(Model.IsArchived ? "Book is currently archived" :
+                                         ViewBag.HasBorrowedCopy ? "You already have this book borrowed" :
+                                         ViewBag.HasPendingRequest ? "You already have a pending request for this book" :
+                                         ViewBag.CurrentBorrows + ViewBag.PendingRequests >= 2 ? "Maximum 2 books allowed (current borrowings + pending requests)" :
+                                         !Model.IsAvailable ? "This book is currently unavailable" : string.Empty)">
+                                    <i class="fas fa-book me-2"></i>
+                                    @(Model.IsArchived ? "Book Archived" :
+                                      ViewBag.HasBorrowedCopy ? "Already Borrowed" :
+                                      ViewBag.HasPendingRequest ? "Request Pending" :
+                                      ViewBag.CurrentBorrows + ViewBag.PendingRequests >= 2 ? "Borrow Limit Reached" :
+                                      !Model.IsAvailable ? "Unavailable" : "Request to Borrow")
+                                </a>
+
+                                @if (Model.IsArchived)
+                                {
+                                    <small class="text-warning d-block mt-2">This book is currently archived</small>
+                                }
+                                else if (!Model.IsAvailable)
+                                {
+                                    <small class="text-muted d-block mt-2">This book is currently unavailable</small>
+                                }
+                                else if (ViewBag.CurrentBorrows + ViewBag.PendingRequests >= 2)
+                                {
+                                    <small class="text-danger d-block mt-2">You have reached the maximum of 2 books (current borrowings + pending requests)</small>
+                                }
+                                else if (ViewBag.HasPendingRequest)
+                                {
+                                    <small class="text-warning d-block mt-2">Your request is pending approval</small>
+                                }
+                                else if (ViewBag.HasBorrowedCopy)
+                                {
+                                    <small class="text-warning d-block mt-2">You already have this book borrowed</small>
+                                }
+                            }
+                        </div>
+
+                        <!-- Book Details -->
+                        <div class="col-md-7">
+                            <dl class="row">
+                                <dt class="col-sm-4 text-muted">Author</dt>
+                                <dd class="col-sm-8 fw-medium">@Model.Author</dd>
+
+                                <dt class="col-sm-4 text-muted">Overview</dt>
+                                <dd class="col-sm-8 text-secondary">@Model.Description</dd>
+
+                                <dt class="col-sm-4 text-muted">Status</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge @statusBadgeClass px-3 py-2">
+                                        @statusBadgeText
+                                    </span>
+                                    <small class="text-muted ms-2">
+                                        (@availableCopies of @totalCopies copies available)
+                                    </small>
+                                </dd>
+
+                                <dt class="col-sm-4 text-muted">Subjects</dt>
+                                <dd class="col-sm-8">
+                                    @foreach (var subject in Model.BookSubjects)
+                                    {
+                                        <span class="badge bg-light text-dark border me-1 mb-1">
+                                            @subject.Subject.SubjectName
+                                        </span>
+                                    }
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        padding-top: 80px;
+        background-color: #f3f4f6;
+        margin-left: 220px;
+    }
+
+    .book-cover {
+        max-height: 400px;
+        width: auto;
+        transition: transform 0.3s ease;
+    }
+
+        .book-cover:hover {
+            transform: scale(1.03);
+        }
+
+    .img-placeholder {
+        border: 1px dashed #dee2e6;
+    }
+
+    dt {
+        font-weight: 500;
+    }
+
+    .badge {
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+</style>

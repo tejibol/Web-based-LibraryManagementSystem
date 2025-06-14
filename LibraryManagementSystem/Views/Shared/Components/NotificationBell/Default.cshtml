@@ -1,0 +1,34 @@
+﻿@using LibraryManagementSystem.Models
+@* Ensure this is the correct path *@
+@model List<LibraryManagementSystem.Models.Notification>
+
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle position-relative" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown">
+        <i class="fas fa-bell"></i>
+        @{
+            var notifications = Model as List<LibraryManagementSystem.Models.Notification>;
+        }
+
+        @if (notifications != null && notifications.Any(n => !n.IsRead))
+        {
+            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+        }
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notifDropdown">
+        @if (Model == null || !Model.Any()) 
+        {
+            <!-- If no notifications -->
+            <li><span class="dropdown-item text-muted">No notifications</span></li>
+        }
+        else
+        {
+            @foreach (var notif in Model)
+            {
+                var highlight = notif.IsRead ? "" : "fw-bold text-dark"; 
+                <li>
+                    <a class="dropdown-item @highlight" href="@notif.Link">@notif.Message</a>
+                </li>
+            }
+        }
+    </ul>
+</li>

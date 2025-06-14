@@ -1,0 +1,40 @@
+@model List<LibraryManagementSystem.Models.UserViewModel>
+
+<style>
+    body {
+        padding-top: 60px; /* Adjust this value as needed */
+        margin-left: 240px;
+    }
+
+</style>
+
+<h2>Archived Users</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Created At</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.FullName</td>
+                <td>@user.Email</td>
+                <td>@user.Role</td>
+                <td>@user.CreatedAt</td>
+                <td>
+                    <form asp-action="UnarchiveUser" method="post" style="display: inline;">
+                        <input type="hidden" name="id" value="@user.UserId" />
+                        <button type="submit" class="btn btn-sm btn-success">Unarchive</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table> 

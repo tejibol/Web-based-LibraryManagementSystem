@@ -1,0 +1,216 @@
+@{
+    ViewData["Title"] = "Subscription Complete";
+}
+
+<style>
+    body {
+        padding-top: 50px;
+        background-color: #141414;
+        color: white;
+    }
+    
+    .thankyou-container {
+        max-width: 800px;
+        margin: 4rem auto;
+        padding: 3rem 2rem;
+        background: #1a1a1a;
+        border-radius: 10px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        text-align: center;
+    }
+    
+    .success-icon {
+        font-size: 5rem;
+        color: #2ecc71;
+        margin-bottom: 1.5rem;
+    }
+    
+    .thankyou-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: white;
+    }
+    
+    .thankyou-message {
+        font-size: 1.2rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+        color: #ccc;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .trial-notice {
+        background: rgba(30, 136, 229, 0.1);
+        border: 1px dashed rgba(30, 136, 229, 0.5);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 2rem auto;
+        max-width: 500px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+    }
+    
+    .trial-icon {
+        font-size: 2.5rem;
+        color: #1e88e5;
+        margin-right: 1.5rem;
+    }
+    
+    .trial-text {
+        flex: 1;
+    }
+    
+    .trial-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #1e88e5;
+    }
+    
+    .trial-description {
+        font-size: 1rem;
+        color: #ccc;
+        line-height: 1.6;
+    }
+    
+    .trial-date {
+        font-weight: 600;
+        color: white;
+    }
+    
+    .buttons-container {
+        margin-top: 2.5rem;
+    }
+    
+    .primary-btn {
+        display: inline-block;
+        background: #1e88e5;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-decoration: none;
+        margin: 0 0.5rem 1rem 0.5rem;
+        transition: background 0.3s ease;
+    }
+    
+    .primary-btn:hover {
+        background: #1565c0;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .secondary-btn {
+        display: inline-block;
+        background: transparent;
+        color: #1e88e5;
+        border: 1px solid #1e88e5;
+        border-radius: 5px;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-decoration: none;
+        margin: 0 0.5rem 1rem 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .secondary-btn:hover {
+        background: rgba(30, 136, 229, 0.1);
+        color: #1e88e5;
+        text-decoration: none;
+    }
+    
+    .benefits-list {
+        text-align: left;
+        max-width: 500px;
+        margin: 0 auto 2rem auto;
+    }
+    
+    .benefit-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+    
+    .benefit-icon {
+        color: #2ecc71;
+        margin-right: 1rem;
+        margin-top: 0.2rem;
+    }
+    
+    .benefit-text {
+        flex: 1;
+        line-height: 1.5;
+        color: #ddd;
+    }
+</style>
+
+<div class="thankyou-container">
+    <div class="success-icon">
+        <i class="fas fa-check-circle"></i>
+    </div>
+    
+    <h1 class="thankyou-title">Thank You for Subscribing!</h1>
+    
+    <p class="thankyou-message">
+        Your subscription to our library management system has been successfully processed. 
+        You now have access to all the features included in your selected plan.
+    </p>
+    
+    @if (ViewBag.IsTrialPeriod == true)
+    {
+        <div class="trial-notice">
+            <div class="trial-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="trial-text">
+                <div class="trial-title">Your Free Trial Period</div>
+                <p class="trial-description">
+                    You are currently in your 7-day free trial period. Your trial will end on 
+                    <span class="trial-date">@ViewBag.TrialEndDate.ToString("MMMM d, yyyy")</span>. 
+                    Enjoy exploring all the premium features during this time!
+                </p>
+            </div>
+        </div>
+    }
+    
+    <div class="benefits-list">
+        <h3 style="margin-bottom: 1.5rem; color: white;">What you can now access:</h3>
+        
+        <div class="benefit-item">
+            <div class="benefit-icon"><i class="fas fa-check"></i></div>
+            <div class="benefit-text">Comprehensive library management system</div>
+        </div>
+        
+        <div class="benefit-item">
+            <div class="benefit-icon"><i class="fas fa-check"></i></div>
+            <div class="benefit-text">Enhanced reporting and analytics</div>
+        </div>
+        
+        <div class="benefit-item">
+            <div class="benefit-icon"><i class="fas fa-check"></i></div>
+            <div class="benefit-text">Customizable experience for your school</div>
+        </div>
+        
+        <div class="benefit-item">
+            <div class="benefit-icon"><i class="fas fa-check"></i></div>
+            <div class="benefit-text">Support and training resources</div>
+        </div>
+    </div>
+    
+    <div class="buttons-container">
+        <a href="@Url.Action("MySubscription", "Subscription")" class="primary-btn">
+            <i class="fas fa-user mr-2"></i> View My Subscription
+        </a>
+        
+        <a href="@Url.Action("Index", "Home")" class="secondary-btn">
+            <i class="fas fa-home mr-2"></i> Return to Home
+        </a>
+    </div>
+</div> 

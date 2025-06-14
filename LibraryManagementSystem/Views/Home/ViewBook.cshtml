@@ -1,0 +1,226 @@
+@model Book
+@{
+    ViewData["Title"] = "View Book";
+}
+
+@section Styles {
+    <style>
+        body {
+            padding-top: 50px; /* Adjust depending on navbar height */
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+            min-height: 100vh;
+            color: #333;
+        }
+        .book-detail-container {
+            padding: 2rem 0;
+            background-color: #fafafa;
+        }
+
+        .book-detail-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .book-cover-container {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .book-cover-img {
+            max-height: 350px;
+            width: auto;
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .book-info-container {
+            padding: 2rem;
+        }
+
+        .book-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .book-author {
+            color: #6c757d;
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .book-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .book-meta-item {
+            background: #f8f9fa;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .book-meta-item i {
+            margin-right: 0.5rem;
+            color: #6c757d;
+        }
+
+        .book-description {
+            margin-bottom: 1.5rem;
+            line-height: 1.7;
+            color: #495057;
+        }
+
+        .book-subjects {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .subject-badge {
+            background: #e9ecef;
+            color: #495057;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .availability-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .availability-title {
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            color: #2c3e50;
+        }
+
+        .availability-info {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .availability-item {
+            text-align: center;
+        }
+
+        .availability-count {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .availability-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .login-prompt {
+            background: #e8f4ff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 5px solid #007bff;
+        }
+
+        .back-button {
+            margin-bottom: 1rem;
+        }
+    </style>
+}
+
+<div class="container book-detail-container">
+    <a href="@Url.Action("BookCollection")" class="btn btn-outline-secondary back-button">
+        <i class="fas fa-arrow-left me-2"></i>Back to Collection
+    </a>
+
+    <div class="book-detail-card">
+        <div class="row g-0">
+            <div class="col-md-4">
+                <div class="book-cover-container">
+                    @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+                    {
+                        <img src="@Model.CoverImageUrl" alt="@Model.Title cover" class="book-cover-img">
+                    }
+                    else
+                    {
+                        <div class="book-cover-img bg-light d-flex align-items-center justify-content-center" style="height: 350px;">
+                            <i class="fas fa-book fa-5x text-muted"></i>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="book-info-container">
+                    <h1 class="book-title">@Model.Title</h1>
+                    <div class="book-author">by @Model.Author</div>
+
+                    <div class="book-meta">
+                        <div class="book-meta-item">
+                            <i class="fas fa-calendar"></i> Published: @Model.PublishedDate.ToString("MMMM yyyy")
+                        </div>
+                        <div class="book-meta-item">
+                            <i class="fas fa-barcode"></i> ISBN: @(string.IsNullOrEmpty(Model.ISBN) ? "Not Available" : Model.ISBN)
+                        </div>
+                    </div>
+
+                    <div class="availability-section">
+                        <div class="availability-title">Availability</div>
+                        <div class="availability-info">
+                            <div class="availability-item">
+                                <div class="availability-count @(ViewBag.AvailableCopies > 0 ? "text-success" : "text-danger")">
+                                    @ViewBag.AvailableCopies
+                                </div>
+                                <div class="availability-label">Available</div>
+                            </div>
+                            <div class="availability-item">
+                                <div class="availability-count">@ViewBag.TotalCopies</div>
+                                <div class="availability-label">Total Copies</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="login-prompt">
+                        <div class="fw-bold mb-2">Want to borrow this book?</div>
+                        <p class="mb-2">Sign in to request this book or see your borrowing history.</p>
+                        <a href="/Identity/Account/Login" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </a>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <div class="book-description-section">
+                            <h4>Description</h4>
+                            <div class="book-description">@Model.Description</div>
+                        </div>
+                    }
+
+                    @if (Model.BookSubjects.Any())
+                    {
+                        <h4>Subjects</h4>
+                        <div class="book-subjects">
+                            @foreach (var bookSubject in Model.BookSubjects)
+                            {
+                                <span class="subject-badge">@bookSubject.Subject.SubjectName</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

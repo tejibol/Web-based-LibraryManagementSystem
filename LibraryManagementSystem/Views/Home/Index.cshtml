@@ -1,0 +1,499 @@
+﻿@using Microsoft.AspNetCore.Identity
+@model LoginModel
+@inject SignInManager<ApplicationUser> SignInManager
+
+@{
+    ViewData["Title"] = "Library Management System";
+}
+
+@section Styles {
+    <style>
+        body {
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+            min-height: 100vh;
+        }
+        
+        /* Hero section styles */
+        .hero-section {
+            position: relative;
+            height: 50vh;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('/images/librarybackground.jpg');
+            background-size: cover;
+            background-position: center;
+            filter: brightness(30%); /* Darkened for better text contrast */
+            z-index: 0;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            color: white;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 2.5rem; /* Slightly reduced */
+            font-weight: 700;
+            margin-bottom: 1rem; /* Reduced */
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem; /* Slightly reduced */
+            margin-bottom: 1.5rem; /* Reduced */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            font-weight: 300;
+            line-height: 1.4;
+        }
+
+        /* Search bar improvements */
+        .hero-search-form {
+            max-width: 600px;
+            margin: 0 auto 1rem; /* Added bottom margin */
+        }
+        
+        .hero-search-input-group {
+            display: flex;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .hero-search-input-group:focus-within {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        
+        .hero-search-input {
+            flex: 1;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            background: transparent;
+            outline: none;
+        }
+        
+        .hero-search-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0 1.5rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .hero-search-btn:hover {
+            background: #2980b9;
+        }
+        
+        .hero-browse-btn {
+            padding: 0.7rem 1.5rem;
+            font-size: 0.9rem;
+            background-color: transparent;
+            color: white;
+            border: 2px solid white;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .hero-browse-btn:hover {
+            background-color: white;
+            color: #3498db;
+            transform: translateY(-2px);
+        }
+
+        /* Main content container */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Section styling */
+        .content-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .content-section:hover {
+            transform: translateY(-2px);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title i {
+            color: #3498db;
+        }
+
+        /* Featured Books Section Styles */
+        .featured-books {
+            margin-top: 0.5rem;
+        }
+
+        .featured-books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.5rem;
+            padding: 0.25rem 0;
+        }
+
+        .featured-book-card {
+            position: relative;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            height: 100%;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .featured-book-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .book-cover-wrapper {
+            position: relative;
+            padding-top: 100%;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+
+        .book-cover {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .book-cover-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
+            color: #9ca3af;
+        }
+
+        .book-hover-info {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            padding: 0.5rem;
+        }
+
+        .featured-book-card:hover .book-hover-info {
+            opacity: 1;
+        }
+
+        .featured-book-card:hover .book-cover {
+            transform: scale(1.1);
+        }
+
+        .hover-content {
+            color: white;
+            text-align: center;
+        }
+
+        .book-description {
+            display: none;
+        }
+
+        .view-details-btn {
+            padding: 0.3rem 0.5rem;
+            font-size: 0.65rem;
+            border-radius: 4px;
+            width: 100%;
+            text-align: center;
+            margin-top: 0.2rem;
+        }
+
+        .book-info {
+            padding: 0.4rem;
+            background: white;
+        }
+
+        .book-title {
+            font-size: 0.7rem;
+            margin-bottom: 0.1rem;
+            line-height: 1.2;
+            font-weight: 500;
+        }
+
+        .book-author {
+            font-size: 0.65rem;
+            margin-bottom: 0.2rem;
+            color: #666;
+        }
+
+        .book-meta {
+            padding-top: 0.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.2rem;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .book-isbn {
+            display: none;
+        }
+
+        .book-status {
+            font-size: 0.6rem;
+            padding: 0.1rem 0.3rem;
+            border-radius: 4px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .book-status.available {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .book-status.borrowed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Announcements Grid */
+        .announcements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .announcement-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.25rem;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .announcement-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .announcement-card h5 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .announcement-card p {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin: 0;
+        }
+
+        /* About Section */
+        .about-section {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .about-content {
+            color: #2c3e50;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            .hero-section {
+                height: 60vh;
+            }
+        }
+
+        /* Responsive adjustments for featured books */
+        @@media (max-width: 1200px) {
+            .featured-books-grid {
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .featured-books-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+                gap: 0.4rem;
+            }
+            
+            .book-info {
+                padding: 0.3rem;
+            }
+            
+            .book-title {
+                font-size: 0.65rem;
+            }
+            
+            .book-author {
+                font-size: 0.6rem;
+            }
+
+            .book-status {
+                font-size: 0.55rem;
+            }
+        }
+    </style>
+}
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <!-- Existing redirect script -->
+}
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+        <h1 class="hero-title">Welcome to LibraTech Solution</h1>
+        <p class="hero-subtitle">Your Digital Gateway to Knowledge and Learning Excellence</p>
+        
+        <form method="get" asp-controller="Home" asp-action="BookCollection" class="hero-search-form">
+            <div class="hero-search-input-group">
+                <input type="text" name="searchString" class="hero-search-input" placeholder="Search by title, author, or subject...">
+                <button type="submit" class="hero-search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+        
+        <a href="@Url.Action("BookCollection", "Home")" class="hero-browse-btn">
+            <i class="fas fa-book-open"></i>
+            Browse Collection
+        </a>
+    </div>
+</div>
+
+<div class="main-content">
+    <!-- Featured Books Section -->
+    <div class="content-section featured-books">
+        <h2 class="section-title">
+            <i class="fas fa-star"></i>
+            Featured Books
+        </h2>
+        <div class="featured-books-grid">
+            @await Component.InvokeAsync("FeaturedBooks")
+        </div>
+    </div>
+
+    <!-- About Section -->
+    <div class="content-section">
+        <h2 class="section-title">
+            <i class="fas fa-info-circle"></i>
+            About LibraTech Solution
+        </h2>
+        <div class="about-content">
+            <p>
+                LibraTech Solution is a modern library management system designed to streamline and enhance the library experience. 
+                Our platform offers powerful tools for managing books, tracking borrowing history, and facilitating seamless 
+                interactions between library staff and patrons.
+            </p>
+        </div>
+    </div>
+
+    <!-- Announcements Section -->
+    <div class="content-section">
+        <h2 class="section-title">
+            <i class="fas fa-bullhorn"></i>
+            Latest Updates
+        </h2>
+        <div class="announcements-grid">
+            <div class="announcement-card">
+                <h5><i class="fas fa-book-reader text-primary"></i>New Arrivals</h5>
+                <p>Check out our latest additions to the library collection.</p>
+            </div>
+            <div class="announcement-card">
+                <h5><i class="fas fa-clock text-warning"></i>Library Hours</h5>
+                <p>Open Monday to Friday, 8:00 AM to 8:00 PM.</p>
+            </div>
+            <div class="announcement-card">
+                <h5><i class="fas fa-calendar-alt text-success"></i>Events</h5>
+                <p>Join our weekly book club meetings every Saturday.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+}

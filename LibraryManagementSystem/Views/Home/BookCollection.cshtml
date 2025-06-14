@@ -1,0 +1,229 @@
+@model List<Book>
+@{
+    ViewData["Title"] = "Book Collection";
+}
+
+@section Styles {
+    <style>
+        body {
+            padding-top: 50px; /* Adjust depending on navbar height */
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+            min-height: 100vh;
+            color: #333;
+        }
+        .collection-container {
+            padding: 2rem 0;
+            background-color: #fafafa;
+        }
+
+        .filters-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .book-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+            height: 100%;
+            border: none;
+            margin-bottom: 2rem;
+        }
+
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.07);
+        }
+
+        .book-cover {
+            height: 250px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .book-card:hover .book-cover {
+            transform: scale(1.03);
+        }
+
+        .book-info {
+            padding: 1.3rem;
+        }
+
+        .book-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .book-author {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .book-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.8rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid #f0f2f5;
+        }
+
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-badge.available {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-badge.not-available {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .isbn-text {
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+
+        .filter-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #495057;
+        }
+
+        .no-books {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #6c757d;
+            grid-column: 1 / -1; /* Make it span all columns */
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+        }
+
+        .no-books i {
+            font-size: 3rem;
+            color: #dee2e6;
+            margin-bottom: 1rem;
+        }
+    </style>
+}
+
+<div class="container collection-container">
+    <h1 class="mb-4">Book Collection</h1>
+
+    <!-- Filters -->
+    <div class="filters-card">
+        <form method="get" action="@Url.Action("BookCollection")" class="row">
+            <div class="col-md-4 filter-section">
+                <div class="filter-label">Search</div>
+                <input type="text" name="searchTerm" class="form-control" placeholder="Title, author, ISBN..." value="@ViewBag.SearchTerm">
+            </div>
+            
+            <div class="col-md-3 filter-section">
+                <div class="filter-label">Author</div>
+                <select name="author" class="form-select">
+                    <option value="">All Authors</option>
+                    @foreach (var author in ViewBag.Authors)
+                    {
+                        <option value="@author" selected="@(author == ViewBag.SelectedAuthor)">@author</option>
+                    }
+                </select>
+            </div>
+            
+            <div class="col-md-3 filter-section">
+                <div class="filter-label">Subject</div>
+                <select name="subject" class="form-select">
+                    <option value="">All Subjects</option>
+                    @foreach (var subject in ViewBag.Subjects)
+                    {
+                        <option value="@subject.SubjectName" selected="@(subject.SubjectName == ViewBag.SelectedSubject)">@subject.SubjectName</option>
+                    }
+                </select>
+            </div>
+            
+            <div class="col-md-2 filter-section d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search me-1"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Books Display -->
+    <div class="books-grid">
+        @if (Model.Count > 0)
+        {
+            foreach (var book in Model)
+            {
+                <div class="book-card">
+                    <a href="@Url.Action("ViewBook", new { id = book.BookID })" class="text-decoration-none">
+                        @if (!string.IsNullOrEmpty(book.CoverImageUrl))
+                        {
+                            <img src="@book.CoverImageUrl" 
+                                 class="book-cover w-100" 
+                                 alt="@book.Title cover">
+                        }
+                        else
+                        {
+                            <div class="book-cover w-100 bg-light d-flex align-items-center justify-content-center">
+                                <i class="fas fa-book fa-4x text-muted"></i>
+                            </div>
+                        }
+                        <div class="book-info">
+                            <h3 class="book-title">@book.Title</h3>
+                            <p class="book-author">by @book.Author</p>
+                            <div class="book-meta">
+                                <span class="status-badge @(book.IsAvailable ? "available" : "not-available")">
+                                    @(book.IsAvailable ? "Available" : "Not Available")
+                                </span>
+                                <span class="isbn-text">ISBN: @book.ISBN</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="no-books">
+                <i class="fas fa-book-open"></i>
+                <h4>No books found</h4>
+                <p class="text-muted">Try adjusting your search filters</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add AJAX functionality for filters if needed
+        });
+    </script>
+} 

@@ -1,0 +1,232 @@
+@model List<YearLevelViewModel>
+@{
+    ViewData["Title"] = "Manage Students";
+}
+
+@section Styles {
+<style>
+    body {
+        padding-top: 50px;
+    }
+
+    .manage-students-container {
+        margin-left: 220px;
+        padding: 2rem;
+        background-color: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .management-header {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+        animation: slideDown 0.5s ease;
+    }
+
+    .year-level-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+        animation: fadeIn 0.8s ease;
+    }
+
+    .year-level-header {
+        background: linear-gradient(45deg, #2c3e50, #3498db);
+        color: white;
+        padding: 1rem 1.5rem;
+        font-weight: 500;
+    }
+
+    .sections-container {
+        padding: 1.5rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .section-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .section-header {
+        background: #3498db;
+        color: white;
+        padding: 0.75rem 1rem;
+        font-weight: 500;
+    }
+
+    .students-list {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+
+    .student-item {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .student-item:last-child {
+        border-bottom: none;
+    }
+
+    .student-name {
+        font-weight: 500;
+    }
+
+    .student-email {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .student-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .no-students {
+        padding: 1rem;
+        text-align: center;
+        color: #6c757d;
+        font-style: italic;
+    }
+    
+    .action-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        animation: fadeIn 0.8s ease;
+    }
+
+    .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+
+    @@keyframes slideDown {
+        from {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+</style>
+}
+
+<div class="manage-students-container">
+    <div class="management-header">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="display-6 mb-0">Manage Students</h1>
+        </div>
+        <p class="text-muted">Manage students by year level and section</p>
+    </div>
+    
+    <!-- Year Level Advancement Section -->
+    <div class="action-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4><i class="fas fa-graduation-cap text-success me-2"></i>Year Level Advancement</h4>
+            <div>
+                <a href="/SchoolAdmin/CreateUser" class="btn btn-primary me-2">
+                    <i class="fas fa-user-plus me-2"></i>Add New Student
+                </a>
+                <a href="@Url.Action("AdvanceYearLevels")" class="btn btn-success">
+                    <i class="fas fa-arrow-up me-2"></i>Advance Students
+                </a>
+            </div>
+        </div>
+        <p class="text-muted">
+            Use this feature at the end of the school year to advance all students to the next grade level.
+            Students in Grade 10 will be marked as graduated and archived.
+        </p>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        foreach (var yearLevel in Model)
+        {
+            <div class="year-level-card">
+                <div class="year-level-header">
+                    <h2 class="h4 mb-0">@(string.IsNullOrEmpty(yearLevel.YearLevel) ? "Unassigned Year Level" : yearLevel.YearLevel)</h2>
+                </div>
+                @if (yearLevel.Sections != null && yearLevel.Sections.Any())
+                {
+                    <div class="sections-container">
+                        @foreach (var sectionItem in yearLevel.Sections)
+                        {
+                            <div class="section-card">
+                                <div class="section-header">
+                                    <h3 class="h5 mb-0">@sectionItem.DisplayName</h3>
+                                </div>
+                                @if (sectionItem.Students != null && sectionItem.Students.Any())
+                                {
+                                    <ul class="students-list">
+                                        @foreach (var student in sectionItem.Students)
+                                        {
+                                            <li class="student-item">
+                                                <div>
+                                                    <div class="student-name">@student.LastName, @student.FirstName</div>
+                                                    <div class="student-email">@student.Email</div>
+                                                </div>
+                                                <div class="student-actions">
+                                                    <a href="/SchoolAdmin/ViewProfile/@student.Id" class="btn btn-sm btn-outline-primary" title="View Profile">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="/SchoolAdmin/EditUser/@student.Id" class="btn btn-sm btn-outline-secondary" title="Edit Student">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                </div>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <div class="no-students">No students in this section</div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="p-4 text-center text-muted">No sections found for this year level</div>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <div class="alert alert-info">No students found in the system.</div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Any additional JavaScript you might need
+    </script>
+} 

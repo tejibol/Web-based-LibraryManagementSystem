@@ -1,0 +1,80 @@
+@model List<LibraryManagementSystem.Models.UserViewModel>
+
+<style>
+    body {
+        padding-top: 60px; /* Adjust this value as needed */
+        margin-left: 240px;
+    }
+
+</style>
+
+<div class="user-management-container">
+    <div class="management-header">
+        <h1 class="display-6 mb-3">Archived Users</h1>
+        <p class="text-muted">View and restore archived student and librarian accounts</p>
+    </div>
+
+    <div class="users-table">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Count > 0)
+                {
+                    foreach (var user in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-placeholder me-3">
+                                        <i class="fas fa-user-circle fa-lg text-secondary"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-medium">@user.FullName</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@user.Email</td>
+                            <td>
+                                <span class="badge bg-primary rounded-pill">@user.Role</span>
+                            </td>
+                            <td>@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <form asp-action="UnarchiveUser" method="post" style="display: inline;" onsubmit="return confirmUnarchive(event)">
+                                    <input type="hidden" name="id" value="@user.UserId" />
+                                    <button type="submit" class="btn btn-sm btn-success">Unarchive</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            <i class="fas fa-users-slash fa-2x mb-3"></i>
+                            <div>No archived users found</div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmUnarchive(event) {
+            return confirm('Are you sure you want to unarchive this account?');
+        }
+    </script>
+    <!-- Add Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+} 

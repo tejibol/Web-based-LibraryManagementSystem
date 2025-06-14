@@ -1,0 +1,328 @@
+@model List<BorrowerProfileViewModel>
+@{
+    ViewData["Title"] = "Borrower Profiles";
+}
+
+@section Styles {
+    <style>
+        body {
+            padding-top: 60px;
+            margin-left: 220px;
+        }
+
+        .user-management-container {
+            padding: 2rem;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .management-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            animation: slideDown 0.5s ease;
+        }
+
+        .search-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .borrower-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .borrower-header {
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .borrower-header h5 {
+            margin: 0;
+        }
+
+        .borrower-header a {
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .borrower-header a:hover {
+            opacity: 0.9;
+        }
+
+        .borrower-content {
+            padding: 1.5rem;
+        }
+
+        .table-container {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .table {
+            margin: 0;
+        }
+
+        .table thead {
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .table th {
+            font-weight: 600;
+            color: #495057;
+            padding: 1rem;
+            border: none;
+        }
+
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .badge {
+            padding: 0.5em 0.8em;
+            font-weight: 500;
+        }
+
+        .badge.bg-danger {
+            background-color: #dc3545 !important;
+        }
+
+        .badge.bg-warning {
+            background-color: #ffc107 !important;
+            color: #000;
+        }
+
+        .badge.bg-success {
+            background-color: #28a745 !important;
+        }
+
+        .btn-return {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.875rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-return:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #adb5bd;
+        }
+
+        @@keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+}
+
+<div class="user-management-container">
+    <div class="management-header">
+        <h1 class="display-6 mb-3">Borrower Profiles</h1>
+        <p class="text-muted">View and manage borrower information and their book borrowings</p>
+    </div>
+
+    <div class="search-card">
+        <form method="get" class="d-flex">
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                <input type="text" name="searchTerm" class="form-control border-start-0" placeholder="Search borrowers..." value="@Context.Request.Query["searchTerm"]">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </form>
+    </div>
+
+    @foreach (var borrower in Model)
+    {
+        <div class="borrower-container">
+            <div class="borrower-header">
+                <h5>
+                    <a asp-controller="Librarian" asp-action="ViewProfile" asp-route-id="@borrower.UserId">
+                        @borrower.FullName
+                        <small class="text-white-50">(@borrower.Email)</small>
+                    </a>
+                </h5>
+            </div>
+            <div class="borrower-content">
+                @if (borrower.CurrentBorrowings.Any())
+                {
+                    <div class="section-title">
+                        <i class="fas fa-book-reader me-2"></i>Current Borrowings
+                    </div>
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Book Title</th>
+                                        <th>Copy Number</th>
+                                        <th>Borrow Date</th>
+                                        <th>Due Date</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var borrowing in borrower.CurrentBorrowings)
+                                    {
+                                        <tr>
+                                            <td>@borrowing.Book.Title</td>
+                                            <td>@borrowing.CopyNumber</td>
+                                            <td>@borrowing.BorrowDate.ToString("MM/dd/yyyy")</td>
+                                            <td>@borrowing.DueDate.ToString("MM/dd/yyyy")</td>
+                                            <td>
+                                                @if (borrowing.DueDate < DateTime.Now)
+                                                {
+                                                    <span class="badge bg-danger">Overdue</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning">Active</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <form asp-action="MarkAsReturned" method="post" class="d-inline">
+                                                    <input type="hidden" name="borrowingId" value="@borrowing.BorrowingHistoryID" />
+                                                    <button type="submit" class="btn btn-sm btn-success btn-return">
+                                                        <i class="fas fa-check me-1"></i>Return
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+
+                @if (borrower.BorrowingHistory.Any())
+                {
+                    <div class="section-title">
+                        <i class="fas fa-history me-2"></i>Borrowing History
+                    </div>
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Book Title</th>
+                                        <th>Copy Number</th>
+                                        <th>Borrow Date</th>
+                                        <th>Return Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var borrowing in borrower.BorrowingHistory)
+                                    {
+                                        <tr>
+                                            <td>@borrowing.Book.Title</td>
+                                            <td>@borrowing.CopyNumber</td>
+                                            <td>@borrowing.BorrowDate.ToString("MM/dd/yyyy")</td>
+                                            <td>@borrowing.ReturnDate?.ToString("MM/dd/yyyy")</td>
+                                            <td>
+                                                <span class="badge bg-success">Returned</span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+
+                @if (!borrower.CurrentBorrowings.Any() && !borrower.BorrowingHistory.Any())
+                {
+                    <div class="empty-state">
+                        <i class="fas fa-book"></i>
+                        <p class="mb-0">No borrowing history found</p>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <i class="fas fa-users"></i>
+            <p class="mb-0">No borrowers found</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Add confirmation dialog for marking books as returned
+        document.querySelectorAll('form[asp-action="MarkAsReturned"]').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                if (!confirm('Are you sure you want to mark this book as returned?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+} 
